@@ -45,9 +45,11 @@ struct MatType
 /*-----------------------------------------------*/
 /*--------------Global declaration---------------*/ 
 /*-----------------------------------------------*/
-extern char* genfile;
+//extern char* genfile;
 
-void allocateAll(struct MatType *mt);
+static int num_of_mats = 2;
+
+void allocateMat(struct MatType *&mt);
 void allocateNumArray(int*& num);
 
 // //*--- particle information ---*//

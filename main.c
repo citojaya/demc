@@ -7,24 +7,22 @@
 
 #define const int arrSize = 5;
 int main(void){
-    // int *array = malloc(5*sizeof(int));
-    // memset(array,1,5*sizeof(int));
-    // printf("%i\n",array[2]);
-
-    
-    //allocateAll(h_Mat);
+    num_of_mats = 3;
 
 
-    // struct MatType	*h_Mat = (struct MatType *)calloc(5, sizeof(struct MatType));
+    struct MatType *mat;
+    allocateMat(mat);
 
-    // printf("%f",h_Mat->density);
-    // free(h_Mat);
-    // printf("completed");
+    mat[2].density = 1000.0;
+    printf("Density %f\n",mat[1].density);
 
     int *num;
     allocateNumArray(num);
     //int x = num[1];
     for(int i=0; i<5; i++) printf("%i\n", num[i]);
+    
+    // Delete dynamic memeory allocation
     free (num);
+    free (mat);
 
 }
