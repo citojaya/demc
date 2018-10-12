@@ -48,7 +48,7 @@ struct MatType
 extern char* genfile;
 
 void allocateAll(struct MatType *mt);
-void allocateNumArray(int *num);
+void allocateNumArray(int*& num);
 
 // //*--- particle information ---*//
 // extern double3 *hPos, *hVel, *hAngVel, *hForce;

@@ -23,7 +23,8 @@ int main(void){
 
     int *num;
     allocateNumArray(num);
-    int x = *num[1];
-    //printf("%i\n", (int)*num[1]);
+    //int x = num[1];
+    for(int i=0; i<5; i++) printf("%i\n", num[i]);
+    free (num);
 
 }

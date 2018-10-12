@@ -2,7 +2,7 @@
 # Makefile created by Dev-C++ 4.9.9.2
 
 gcc  = g++
-g++   = CC
+g++   = g++
 WINDRES = windres.exe
 RES  = 
 OBJ  =  main.o allocation.o $(RES)
