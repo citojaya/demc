@@ -1,7 +1,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,11 +46,13 @@ struct MatType
 /*-----------------------------------------------*/
 //extern char* genfile;
 
-static int num_of_mats = 2;
+static int num_of_mats = 5;
 
-void allocateMat(struct MatType *&mt);
-void allocateNumArray(int*& num);
-
+void allocateMat(struct MatType *mt);
+int *allocateIntArray(int size);
+double *allocateDoubleArray(int size);
+void test();
+void run();
 // //*--- particle information ---*//
 // extern double3 *hPos, *hVel, *hAngVel, *hForce;
 // extern double *hRad;

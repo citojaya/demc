@@ -6,23 +6,33 @@
 //#include "double_math.h"
 
 #define const int arrSize = 5;
+
 int main(void){
-    num_of_mats = 3;
+    run();
+}
 
+void test(){
+    // struct MatType *mat;
+    // allocateMat(mat);
 
-    struct MatType *mat;
-    allocateMat(mat);
+    // mat[2].density = 1000.0;
+    // printf("Density %f\n",mat[1].density);
 
-    mat[2].density = 1000.0;
-    printf("Density %f\n",mat[1].density);
+    // int *num;
+    // num  = allocateNumArray(num);
+    // for(int i=0; i<num_of_mats; i++) printf("%i\n", num[i]);
+}
+void run(){
+    double *nebList = allocateDoubleArray(num_of_mats);
+    int *nebListIndex = allocateIntArray(num_of_mats); 
+    for(int i=0; i<num_of_mats; i++) printf("%f\n", nebList[i]);  
 
-    int *num;
-    allocateNumArray(num);
-    //int x = num[1];
-    for(int i=0; i<5; i++) printf("%i\n", num[i]);
-    
+    int *boundX;
+    boundX = nebListIndex[1];
+  
     // Delete dynamic memeory allocation
-    free (num);
-    free (mat);
-
+    //free (num);
+    //free (mat);
+    free(nebList);
+    free(nebListIndex);
 }
