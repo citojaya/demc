@@ -25,10 +25,14 @@ void test(){
 void run(){
     double *nebList = allocateDoubleArray(num_of_mats);
     int *nebListIndex = allocateIntArray(num_of_mats); 
-    for(int i=0; i<num_of_mats; i++) printf("%f\n", nebList[i]);  
+    nebListIndex[1] = 1;
+    //for(int i=0; i<num_of_mats; i++) printf("%f\n", nebList[i]);  
 
     int *boundX;
-    boundX = nebListIndex[1];
+    boundX = &nebListIndex[1];
+    printf("Before %i\n",*boundX);
+    nebListIndex[1] = 50;
+    printf("After %i\n",*boundX);
   
     // Delete dynamic memeory allocation
     //free (num);
