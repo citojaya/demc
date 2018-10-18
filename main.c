@@ -5,7 +5,6 @@
 
 //#include "double_math.h"
 
-#define const int arrSize = 5;
 
 int main(void){
     run();
@@ -29,6 +28,18 @@ void run(){
     //for(int i=0; i<num_of_mats; i++) printf("%f\n", nebList[i]);  
 
     int *boundX;
+    double *parCenter = (double *)malloc(noOfPar*dim*sizeof(double));
+    memset(parCenter,0.0,noOfPar*dim*sizeof(double));
+    int count = 0;
+    for (int i=0; i<noOfPar; i++){
+        for (int j=0; j<dim; j++){
+            *(parCenter+i*dim+j) = ++count;
+        }
+    }
+
+
+     printf("partilce center %f",*(parCenter+5+1));
+
     boundX = &nebListIndex[1];
     printf("Before %i\n",*boundX);
     nebListIndex[1] = 50;
@@ -39,4 +50,5 @@ void run(){
     //free (mat);
     free(nebList);
     free(nebListIndex);
+    free (parCenter);
 }
