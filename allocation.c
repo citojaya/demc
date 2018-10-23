@@ -2,8 +2,8 @@
 
 void allocateMat(struct MatType *m){
     printf("allocation.c\n");
-    struct MatType *mt = (struct MatType *)malloc(num_of_mats*sizeof(struct MatType));
-    m = mt;    
+    //struct MatType *mt = (struct MatType *)malloc(num_of_mats*sizeof(struct MatType));
+    //m = mt;    
 }
 
 int *allocateIntArray(int size){

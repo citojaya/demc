@@ -53,8 +53,16 @@ struct MatType {
 /*--------------Global declaration---------------*/ 
 /*-----------------------------------------------*/
 //extern char* genfile;
+double *oldNL, *newNL; //Array for recording cell start and cell end 
+								//positions of particles
+int *parIndexNL, *parCord, *parDia, *parIndex; 
+//parIndex		- Array index of particles
+//parIndexNL 	- Array for storing particle indices for corresponding neighbour list
+//parCord 		- cordinates of particles
+//parDia		- particle diameter
 
-static int num_of_mats = 5;
+//static int num_of_mats = 5;
+static int np = 5; //Total number of particles in the system
 
 void allocateMat(struct MatType *mt);
 int *allocateIntArray(int size);
