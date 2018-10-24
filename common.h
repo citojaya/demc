@@ -55,7 +55,8 @@ struct MatType {
 //extern char* genfile;
 double *oldNL, *newNL; //Array for recording cell start and cell end 
 								//positions of particles
-int *parIndexNL, *parCord, *parDia, *parIndex; 
+int *parIndexNL, *parIndex; 
+double *parCord, *parDia;
 //parIndex		- Array index of particles
 //parIndexNL 	- Array for storing particle indices for corresponding neighbour list
 //parCord 		- cordinates of particles

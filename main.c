@@ -45,6 +45,6 @@ void run(){
     free(parCord);
     free(parIndex);
     free(parDia);
-    printf("All good!");
+    printf("All good!\n");
     // free(nebListIndex);
 }

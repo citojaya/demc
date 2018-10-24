@@ -5,8 +5,8 @@ gcc  = g++
 g++   = gcc
 WINDRES = windres.exe
 RES  = 
-OBJ  =  main.o allocation.o $(RES)
-LINKOBJ  = main.o allocation.o $(RES)
+OBJ  =  main.o allocation.o fileio.o$(RES)
+LINKOBJ  = main.o allocation.o fileio.o$(RES)
 LIBS =  -lm  
 INCS =  -I"include" 
 CXXINCS =  -I"include" 
@@ -33,4 +33,6 @@ main.o: main.c
 	$(g++) -c main.c -o main.o $(CXXFLAGS)
 allocation.o: allocation.c
 	$(g++) -c allocation.c -o allocation.o $(CXXFLAGS)
+fileio.o: fileio.c
+	$(g++) -c fileio.c -o fileio.o $(CXXFLAGS)
 
