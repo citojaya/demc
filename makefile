@@ -5,8 +5,8 @@ gcc  = g++
 g++   = gcc
 WINDRES = windres.exe
 RES  = 
-OBJ  =  main.o allocation.o fileio.o$(RES)
-LINKOBJ  = main.o allocation.o fileio.o$(RES)
+OBJ  =  main.o allocation.o fileio.o diainput.o$(RES)
+LINKOBJ  = main.o allocation.o fileio.o diainput.o$(RES)
 LIBS =  -lm  
 INCS =  -I"include" 
 CXXINCS =  -I"include" 
@@ -22,7 +22,6 @@ clean-custom:
 
 all: all-before test all-after
 
-
 clean: clean-custom
 	${RM} $(OBJ) $(BIN)
 
@@ -35,4 +34,6 @@ allocation.o: allocation.c
 	$(g++) -c allocation.c -o allocation.o $(CXXFLAGS)
 fileio.o: fileio.c
 	$(g++) -c fileio.c -o fileio.o $(CXXFLAGS)
+diainput.o: diainput.c
+	$(g++) -c diainput.c -o diainput.o $(CXXFLAGS)
 

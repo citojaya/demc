@@ -31,19 +31,26 @@ void test(){
     // printf("After %i\n",*boundX);
 }
 void run(){
+    // Read input file 
+    readData("infile");
+
     oldNL = allocateDoubleArray(np*2);
     newNL = allocateDoubleArray(np*2);
     parIndexNL = allocateIntArray(np*2);
-    parCord = allocateDoubleArray(np*3);
+    parPos = allocateDoubleArray(np*3);
     parDia = allocateDoubleArray(np);
-    parIndex = allocateIntArray(np);
+
+    // Read particle information
+    diaInput("pardia", parDia, parPos);
+    //parIndex = allocateIntArray(np);
  
+
     // Delete dynamic memeory allocation
     free(oldNL);
     free(newNL);
     free(parIndexNL);
-    free(parCord);
-    free(parIndex);
+    free(parPos);
+    //free(parIndex);
     free(parDia);
     printf("All good!\n");
     // free(nebListIndex);

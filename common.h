@@ -12,11 +12,8 @@
 #define gravity 9.8f
 
 #define arrSize 5
-#define dim 3
-#define noOfPar 5
-// #define threadsPerBlock  128
-// #define IY  index+d_Params.NP
-// #define IZ  index+2*d_Params.NP
+#define dim 3 // 3D problem 
+
 typedef unsigned int uint;
 
 // err detection utility
@@ -56,18 +53,21 @@ struct MatType {
 double *oldNL, *newNL; //Array for recording cell start and cell end 
 								//positions of particles
 int *parIndexNL, *parIndex; 
-double *parCord, *parDia;
+double *parPos, *parDia;
 //parIndex		- Array index of particles
 //parIndexNL 	- Array for storing particle indices for corresponding neighbour list
 //parCord 		- cordinates of particles
 //parDia		- particle diameter
 
 //static int num_of_mats = 5;
-static int np = 5; //Total number of particles in the system
+static int np; //Total number of particles in the system
 
 void allocateMat(struct MatType *mt);
 int *allocateIntArray(int size);
 double *allocateDoubleArray(int size);
+void readData(char *infile);
+void findRec(FILE *inFile, char* strDest);
+void diaInput(char *diaFile, double *parDia, double *parPos);
 void test();
 void run();
 // //*--- particle information ---*//
