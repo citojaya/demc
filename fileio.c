@@ -25,7 +25,7 @@ void findRec(FILE *inFile, char* strDest){
 }
 
 /*---Read input data from a file ----*/
-void readData(char *infile){
+void readData(char *infile, int *np){
 	// input file reading
 	char filename[20];
 	strcpy(filename, infile);
@@ -52,10 +52,10 @@ void readData(char *infile){
 	double BdDepth  = 0.0;
 
 	double parDia = 0.0;
-	int np = 0;
+	
 	findRec(InFile, "PAR_NUMBER");
-	fscanf(InFile, "%d",  &np);
-	printf("np: %d\n",np);
+	fscanf(InFile, "%d",  np);
+	//printf("np: %d\n",np);
 	//findRec(InFile, "packing_TIME");
 	//fscanf(InFile, "%lf", &h_load->tPacking);	// packing time
 

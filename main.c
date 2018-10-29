@@ -32,16 +32,21 @@ void test(){
 }
 void run(){
     // Read input file 
-    readData("infile");
-
+    int np;
+    readData("infile", &np);
+    printf("PAR  %d\n",np);
     oldNL = allocateDoubleArray(np*2);
     newNL = allocateDoubleArray(np*2);
     parIndexNL = allocateIntArray(np*2);
     parPos = allocateDoubleArray(np*3);
     parDia = allocateDoubleArray(np);
+    cellStart = allocateIntArray(np*3);
+    cellEnd = allocateIntArray(np*3);
 
     // Read particle information
-    diaInput("pardia", parDia, parPos);
+    diaInput("pardia", parDia, parPos, &np);
+    
+    updateParPosition();
     //parIndex = allocateIntArray(np);
  
 
@@ -52,6 +57,8 @@ void run(){
     free(parPos);
     //free(parIndex);
     free(parDia);
+    free(cellStart);
+    free(cellEnd);
     printf("All good!\n");
     // free(nebListIndex);
 }

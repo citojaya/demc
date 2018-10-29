@@ -5,8 +5,8 @@ gcc  = g++
 g++   = gcc
 WINDRES = windres.exe
 RES  = 
-OBJ  =  main.o allocation.o fileio.o diainput.o$(RES)
-LINKOBJ  = main.o allocation.o fileio.o diainput.o$(RES)
+OBJ  =  main.o allocation.o fileio.o diainput.o math_operation.o motion.o$(RES)
+LINKOBJ  = main.o allocation.o fileio.o diainput.o math_operation.o motion.o $(RES)
 LIBS =  -lm  
 INCS =  -I"include" 
 CXXINCS =  -I"include" 
@@ -36,4 +36,8 @@ fileio.o: fileio.c
 	$(g++) -c fileio.c -o fileio.o $(CXXFLAGS)
 diainput.o: diainput.c
 	$(g++) -c diainput.c -o diainput.o $(CXXFLAGS)
+math_operation.o: math_operation.c
+	$(g++) -c math_operation.c -o math_operation.o $(CXXFLAGS)
+motion.o: motion.c
+	$(g++) -c motion.c -o motion.o $(CXXFLAGS)
 

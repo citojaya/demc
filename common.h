@@ -19,6 +19,18 @@ typedef unsigned int uint;
 // err detection utility
 #define FPRINTF(a) fprintf a
 
+/*-----------------------------------------------*/
+/*--------------Global declaration---------------*/ 
+/*-----------------------------------------------*/
+//extern char* genfile;
+//static int np;
+double *oldNL, *newNL; //sorted array for recording particle start and end positions
+int *parIndexNL; //sorted array for recording particle index 
+int *cellStart; //start cell index for particle
+int *cellEnd; //end cell index for particle
+double *parPos, *parDia;
+
+//int *np;
 //*--- Boundary Condition ---*// 
 struct CylinderBC { 
 	double cir;     // the position of axial and radius (X, Y)
@@ -46,30 +58,30 @@ struct MatType {
 // }
 
 
-/*-----------------------------------------------*/
-/*--------------Global declaration---------------*/ 
-/*-----------------------------------------------*/
-//extern char* genfile;
-double *oldNL, *newNL; //Array for recording cell start and cell end 
-								//positions of particles
-int *parIndexNL, *parIndex; 
-double *parPos, *parDia;
+
 //parIndex		- Array index of particles
 //parIndexNL 	- Array for storing particle indices for corresponding neighbour list
 //parCord 		- cordinates of particles
 //parDia		- particle diameter
 
 //static int num_of_mats = 5;
-static int np; //Total number of particles in the system
+//static int np; //Total number of particles in the system
 
 void allocateMat(struct MatType *mt);
 int *allocateIntArray(int size);
 double *allocateDoubleArray(int size);
-void readData(char *infile);
+void readData(char *infile, int *np);
 void findRec(FILE *inFile, char* strDest);
-void diaInput(char *diaFile, double *parDia, double *parPos);
+void diaInput(char *diaFile, double *parDia, double *parPos, int *np);
+
+void insertionSort(double *array, int size);
+void updateParPosition();
+
+
 void test();
 void run();
+
+
 // //*--- particle information ---*//
 // extern double3 *hPos, *hVel, *hAngVel, *hForce;
 // extern double *hRad;

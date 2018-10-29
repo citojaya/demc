@@ -1,7 +1,7 @@
 #include <math.h>
 #include "common.h"
 
-void diaInput(char *infile, double *parDia, double *parPos){
+void diaInput(char *infile, double *parDia, double *parPos, int *np){
 	char filename[20];
 	strcpy(filename, infile);
 	strcat(filename ,".in"); 
@@ -14,13 +14,16 @@ void diaInput(char *infile, double *parDia, double *parPos){
 	}
 	int num = 0;
 
+    //printf("No of par %d\n",np);
 	findRec(pDiaFile, "PARTICLE");
-	for(int i=0; i<np; i++){
-		fscanf(pDiaFile, "%lf,%lf,%lf,%lf", &parDia[i], &parPos[i*dim+0]
-		,&parPos[i*dim+1],&parPos[i*dim+2]);
-		//for(int i=0; i<dim; i++)fscanf(pDiaFile, "%lf", &parPos[num*dim+i]);
+	for(int i=0; i<*np; i++){
+		fscanf(pDiaFile, "%lf", &parDia[i]);
+		fscanf(pDiaFile, "%lf", &parPos[i*dim+0]);
+		fscanf(pDiaFile, "%lf", &parPos[i*dim+1]);
+		fscanf(pDiaFile, "%lf", &parPos[i*dim+2]);
+		//for(int i=0; i<dim; i++)fscanf(pDiaFile, "%lf", &parPos[i*dim+i]);
 		
-		printf("D[%d]: %lf \n", i, parDia[i]);
+		printf("D[%d]: %lf, %lf\n", i, parDia[i], parPos[i*dim+0]);
 	
 	}
 
