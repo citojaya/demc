@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "double_math.h"
 
 /*--------------Common definitions---------------*/
 #define NUM_MAT 2    // two types material
