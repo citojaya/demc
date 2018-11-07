@@ -63,3 +63,31 @@ void readData(char *infile, int *np){
 	fclose(LogFile);
 }
 
+void diaInput(char *infile, double *parDia, double *parPosX, 
+				double *parPosY, double *parPosZ,int *np){
+	char filename[20];
+	strcpy(filename, infile);
+	strcat(filename ,".in"); 
+	FILE *pDiaFile = fopen(filename, "rt");
+
+	if (pDiaFile == NULL){
+		fprintf(stderr, "Can't open the parameter file %s! \n", filename);
+		char c = getchar();
+		exit(1);
+	}
+	int num = 0;
+
+    //printf("No of par %d\n",np);
+	findRec(pDiaFile, "PARTICLE");
+	for(int i=0; i<*np; i++){
+		fscanf(pDiaFile, "%lf", &parDia[i]);
+		fscanf(pDiaFile, "%lf", &parPosX[i]);
+		fscanf(pDiaFile, "%lf", &parPosY[i]);
+		fscanf(pDiaFile, "%lf", &parPosZ[i]);
+		//for(int i=0; i<dim; i++)fscanf(pDiaFile, "%lf", &parPos[i*dim+i]);
+		
+		printf("D[%d]: %lf, %lf, %lf, %lf\n", i, parDia[i], parPosX[i], parPosY[i], parPosZ[i]);
+	
+	}
+}
+

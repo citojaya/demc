@@ -23,11 +23,10 @@ typedef unsigned int uint;
 /*-----------------------------------------------*/
 //extern char* genfile;
 //static int np;
-double *oldNL, *newNL; //sorted array for recording particle start and end positions
-int *parIndexNL; //sorted array for recording particle index 
-int *cellStart; //start cell index for particle
-int *cellEnd; //end cell index for particle
-double *parPos, *parDia;
+double *nbList; //sorted array for recording particle start and end positions
+int *parIndex; //sorted array for recording particle index 
+int *cellSE; //keeps a record of start and end positions for all particle (start=1, end=2)
+double *parPosX, *parPosY, *parPosZ, *parDia;
 
 //int *np;
 //*--- Boundary Condition ---*// 
@@ -71,8 +70,11 @@ int *allocateIntArray(int size);
 double *allocateDoubleArray(int size);
 void readData(char *infile, int *np);
 void findRec(FILE *inFile, char* strDest);
-void diaInput(char *diaFile, double *parDia, double *parPos, int *np);
+void diaInput(char *diaFile, double *parDia, double *parPosX, 
+					double *parPosY, double *parPosZ, int *np);
 
+void initialize(double *nbList, int *parIndex, int *cellSE, int np,
+    double *pos, double *parDia);
 void insertionSort(double *array, int size);
 void updateParPosition();
 

@@ -35,30 +35,34 @@ void run(){
     int np;
     readData("infile", &np);
     printf("PAR  %d\n",np);
-    oldNL = allocateDoubleArray(np*2);
-    newNL = allocateDoubleArray(np*2);
-    parIndexNL = allocateIntArray(np*2);
-    parPos = allocateDoubleArray(np*3);
+    nbList = allocateDoubleArray(np*2);
+    parIndex = allocateIntArray(np*2);
+    parPosX = allocateDoubleArray(np);
+    parPosY = allocateDoubleArray(np);
+    parPosZ = allocateDoubleArray(np);
+    cellSE = allocateIntArray(np*2);
     parDia = allocateDoubleArray(np);
-    cellStart = allocateIntArray(np*3);
-    cellEnd = allocateIntArray(np*3);
+    cellSE = allocateIntArray(np*3);
 
     // Read particle information
-    diaInput("pardia", parDia, parPos, &np);
+    diaInput("pardia", parDia, parPosX, parPosY, parPosZ, &np);
     
-    updateParPosition();
+    // Initialize neighbourlist array for the first time
+    initialize(nbList, parIndex, cellSE, np, parPosX, parDia);
+
+    //updateParPosition();
     //parIndex = allocateIntArray(np);
  
 
     // Delete dynamic memeory allocation
-    free(oldNL);
-    free(newNL);
-    free(parIndexNL);
-    free(parPos);
+    free(parPosX);
+    free(parPosY);
+    free(parPosZ);
+    free(nbList);
+    free(parIndex);
+    free(cellSE);
     //free(parIndex);
     free(parDia);
-    free(cellStart);
-    free(cellEnd);
     printf("All good!\n");
     // free(nebListIndex);
 }
