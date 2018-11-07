@@ -10,6 +10,10 @@ void initialize(double *nbList, int *parIndex, int *cellSE, int np,
     for (int i=0; i<np; i++){
         nbList[j] = pos[i] - 0.5*parDia[i];
         nbList[j+1] = pos[i] + 0.5*parDia[i];
+        parIndex[j] = i;
+        parIndex[j+1] = i;
+        cellSE[j] = 1;
+        cellSE[j+1] = 2;
         j += 2;
     }
 }

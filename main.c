@@ -49,7 +49,16 @@ void run(){
     
     // Initialize neighbourlist array for the first time
     initialize(nbList, parIndex, cellSE, np, parPosX, parDia);
+    printf("Before sorting\n");
+    for (int i=0; i<np*2; i++){
+        printf("%lf, %d, %d\n", nbList[i], parIndex[i], cellSE[i]);
+    }
 
+    insertionSort(nbList, np*2, parIndex, cellSE);
+    printf("After sorting\n");
+    for (int i=0; i<np*2; i++){
+        printf("%lf, %d, %d\n", nbList[i], parIndex[i], cellSE[i]);
+    }
     //updateParPosition();
     //parIndex = allocateIntArray(np);
  

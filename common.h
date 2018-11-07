@@ -75,7 +75,7 @@ void diaInput(char *diaFile, double *parDia, double *parPosX,
 
 void initialize(double *nbList, int *parIndex, int *cellSE, int np,
     double *pos, double *parDia);
-void insertionSort(double *array, int size);
+void insertionSort(double *nbArray, int size, int *parIArray, int *cellSEArray);
 void updateParPosition();
 
 
