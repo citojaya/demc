@@ -1,5 +1,12 @@
 #include "common.h"
 
+void initialSort(double *nbArray, int size, int *parIArray, int *cellSEArray){
+   // loop through all numbers 
+   for(int i = 1; i < size; i++) { 
+   }   
+}
+
+
 void insertionSort(double *nbArray, int size, int *parIArray, int *cellSEArray) {
 
    double nbValToInsert;

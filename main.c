@@ -35,29 +35,29 @@ void run(){
     int np;
     readData("infile", &np);
     printf("PAR  %d\n",np);
-    nbList = allocateDoubleArray(np*2);
-    parIndex = allocateIntArray(np*2);
+    sortedList = allocateDoubleArray(np*2);
+    sortedParIndex = allocateIntArray(np*2);
     parPosX = allocateDoubleArray(np);
     parPosY = allocateDoubleArray(np);
     parPosZ = allocateDoubleArray(np);
     cellSE = allocateIntArray(np*2);
     parDia = allocateDoubleArray(np);
     cellSE = allocateIntArray(np*3);
-
+    parNb = allocateIntArray(np*nbSize);
     // Read particle information
     diaInput("pardia", parDia, parPosX, parPosY, parPosZ, &np);
     
     // Initialize neighbourlist array for the first time
-    initialize(nbList, parIndex, cellSE, np, parPosX, parDia);
+    initialize(sortedList, sortedParIndex, cellSE, np, parPosX, parDia);
     printf("Before sorting\n");
     for (int i=0; i<np*2; i++){
-        printf("%lf, %d, %d\n", nbList[i], parIndex[i], cellSE[i]);
+        printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);
     }
 
-    insertionSort(nbList, np*2, parIndex, cellSE);
+    insertionSort(sortedList, np*2, sortedParIndex, cellSE);
     printf("After sorting\n");
     for (int i=0; i<np*2; i++){
-        printf("%lf, %d, %d\n", nbList[i], parIndex[i], cellSE[i]);
+        printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);
     }
     //updateParPosition();
     //parIndex = allocateIntArray(np);
@@ -67,11 +67,12 @@ void run(){
     free(parPosX);
     free(parPosY);
     free(parPosZ);
-    free(nbList);
-    free(parIndex);
+    free(sortedList);
+    free(sortedParIndex);
     free(cellSE);
     //free(parIndex);
     free(parDia);
+    free(parNb);
     printf("All good!\n");
     // free(nebListIndex);
 }

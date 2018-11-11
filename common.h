@@ -11,7 +11,8 @@
 #define gravity 9.8f
 
 #define arrSize 5
-#define dim 3 // 3D problem 
+#define dim 3 // 3D problem
+#define nbSize 10 //size of neighbourlist
 
 typedef unsigned int uint;
 
@@ -23,9 +24,10 @@ typedef unsigned int uint;
 /*-----------------------------------------------*/
 //extern char* genfile;
 //static int np;
-double *nbList; //sorted array for recording particle start and end positions
-int *parIndex; //sorted array for recording particle index 
+double *sortedList; //sorted array for recording particle start and end positions
+int *sortedParIndex; //sorted array for recording particle index 
 int *cellSE; //keeps a record of start and end positions for all particle (start=1, end=2)
+int *parNb; //partilce neighbourlist
 double *parPosX, *parPosY, *parPosZ, *parDia;
 
 //int *np;
@@ -73,7 +75,7 @@ void findRec(FILE *inFile, char* strDest);
 void diaInput(char *diaFile, double *parDia, double *parPosX, 
 					double *parPosY, double *parPosZ, int *np);
 
-void initialize(double *nbList, int *parIndex, int *cellSE, int np,
+void initialize(double *sortedList, int *sortedParIndex, int *cellSE, int np,
     double *pos, double *parDia);
 void insertionSort(double *nbArray, int size, int *parIArray, int *cellSEArray);
 void updateParPosition();
