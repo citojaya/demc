@@ -44,17 +44,30 @@ void run(){
     parDia = allocateDoubleArray(np);
     cellSE = allocateIntArray(np*3);
     parNb = allocateIntArray(np*nbSize);
+    parNoOfNb = allocateIntArray(np);
+
+    //initialize scale factors
+    setScaleFactors();
+
     // Read particle information
     diaInput("pardia", parDia, parPosX, parPosY, parPosZ, &np);
     
     // Initialize neighbourlist array for the first time
     initialize(sortedList, sortedParIndex, cellSE, np, parPosX, parDia);
+
     printf("Before sorting\n");
     for (int i=0; i<np*2; i++){
         printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);
     }
 
-    insertionSort(sortedList, np*2, sortedParIndex, cellSE);
+    //Neighbourlist sorting for the first time
+    insertionSort(sortedList, np*2, sortedParIndex, cellSE, 1);
+
+    //Assign particle neighbours for the first time
+    assignNeighbours(sortedList, sortedParIndex, cellSE, np*2);
+
+    //Sort neighbourlist for each iteration
+    insertionSort(sortedList, np*2, sortedParIndex, cellSE, 0);
     printf("After sorting\n");
     for (int i=0; i<np*2; i++){
         printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);

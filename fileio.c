@@ -84,6 +84,11 @@ void diaInput(char *infile, double *parDia, double *parPosX,
 		fscanf(pDiaFile, "%lf", &parPosX[i]);
 		fscanf(pDiaFile, "%lf", &parPosY[i]);
 		fscanf(pDiaFile, "%lf", &parPosZ[i]);
+
+		parDia[i] = parDia[i]*conversion*lengthFactor;
+		parPosX[i] = parPosX[i]*conversion*lengthFactor;
+		parPosY[i] = parPosY[i]*conversion*lengthFactor;
+		parPosZ[i] = parPosZ[i]*conversion*lengthFactor;
 		//for(int i=0; i<dim; i++)fscanf(pDiaFile, "%lf", &parPos[i*dim+i]);
 		
 		printf("D[%d]: %lf, %lf, %lf, %lf\n", i, parDia[i], parPosX[i], parPosY[i], parPosZ[i]);
