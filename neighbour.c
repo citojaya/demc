@@ -1,109 +1,116 @@
 #include "common.h"
 
-/*
-Sort neighbourlist for each simulation step
-*/
-void insertionSort(double *nbArray, int size, int *parIArray, int *cellSEArray, int firstTime) {
-   double nbValToInsert;
-   int pIValToInsert, cSEValToInsert; 
-   int holePosition;
-   int i, ip, jp;
-  
-   // loop through all numbers 
-   for(i = 1; i < size; i++) { 
-        // select a value to be inserted. 
-        nbValToInsert = nbArray[i];
-        pIValToInsert = parIArray[i];
-        cSEValToInsert = cellSEArray[i];
-        // select the hole position where number is to be inserted 
-        holePosition = i;
-		
-        // check if previous no. is larger than value to be inserted 
-        while (holePosition > 0 && nbArray[holePosition-1] > nbValToInsert) {
-            nbArray[holePosition] = nbArray[holePosition-1];
-            parIArray[holePosition] = parIArray[holePosition-1];
-            cellSEArray[holePosition] = cellSEArray[holePosition-1];
-            holePosition--;
 
-            /*bmbn => bnbm neighbourlist unchanged
-            bmen => enbm remove from neighbourlist
-            emen => enem neighbourlist unchanged
-            embn => bnem add to neighbourlist */
-            
-            //Execute only after first neighboulist sort iteration
-            if(!firstTime){
-                ip = sortedParIndex[holePosition];
-                jp = sortedParIndex[holePosition-1];
-                if(cellSEArray[holePosition] == 1 && cellSEArray[holePosition-1] == 2){
-                    deleteNeighbour(ip,jp);
-                    deleteNeighbour(jp,ip);
-                    //printf("removed\n");
-                    //remove from neighbourlist
-                }
-                //check for end position of particle
-                else if(cellSEArray[holePosition] == 2 && cellSEArray[holePosition-1] == 1){
-                    addNeighbour(ip,jp);
-                    addNeighbour(jp,ip);
-                    //printf("added\n");
-                    //add to neighbourlist
-                }
-            }
-        }
-         //printf(" item moved : %lf\n" , nbArray[holePosition]);
-        if(holePosition != i) {
-            //printf(" item inserted : %lf, at position : %d\n" , nbValToInsert,holePosition);
-            // insert the number at hole position 
-            nbArray[holePosition] = nbValToInsert;
-            parIArray[holePosition] = pIValToInsert;
-            cellSEArray[holePosition] = cSEValToInsert;
-        }
-   }
-}
 
 /*
 Add a new neighbour to the neighbour list
 */
 void addNeighbour(int ip, int jp){
-    parNb[ip*nbSize+parNoOfNb[ip]] = jp;
-    parNoOfNb[ip]++;
+    if(demPart[ip].noOfNeigh < NBSIZE){
+        demPart[ip].neigh[demPart[ip].noOfNeigh] = jp;
+        demPart[ip].noOfNeigh++;
+    }
+    else{
+        //writeLogLine("demPart[ip].noOfNeigh > NBSIZE");
+        printf("demPart[ip].noOfNeigh > NBSIZE");
+    }
 }
 
 /*
 Delete neighbour
 */
 void deleteNeighbour(int ip, int jp){
-    for (int i=0; i<parNoOfNb[ip]; i++){
-        if(parNb[ip*nbSize+i] == jp){
-            parNb[ip*nbSize+i] = parNb[ip*nbSize+parNoOfNb[ip]-1];
-            parNoOfNb[ip]--;
+    for (int i=0; i<demPart[ip].noOfNeigh; i++){
+        int neigh = demPart[ip].neigh[i];
+        if(neigh == jp){
+            demPart[ip].neigh[i] = demPart[ip].neigh[demPart[i].noOfNeigh-1];
+            demPart[ip].noOfNeigh--;
+            break;
         }
     }
 
 }
 
 /*
-At the begining assign neighbourlist for all particles 
-*/	
-void assignNeighbours(double *sortedList, int *sortedParIndex, int *cellSE, int size){
-    int i, holePosition, ip, jp;
-    for (i=1; i<size; i++){
-        holePosition = i;
-        while(holePosition < size){
-            if(cellSE[i] == 1 && cellSE[holePosition+1] == 2){
-                //printf("CHECK \n");
-                ip = sortedParIndex[i];
-                jp = sortedParIndex[holePosition];
-                if(getCenterDist(ip,jp)-0.5*(parDia[ip]-parDia[jp]) < cutGap){
-                    parNb[ip*nbSize+parNoOfNb[ip]] = jp;
-                    parNoOfNb[ip]++;
-                    parNb[jp*nbSize+parNoOfNb[jp]] = ip;
-                    parNoOfNb[jp]++;
-                    //printf("CUTGAP  %lf\n ",cutGap);
-                };
-                    //check for neighbour region 
+Add particles to bounding box
+*/
+void addToBdBox(){
+    //printf("NP %d\n", np);
+    // //Reset to zero
+    for(int i=0; i<xDiv*yDiv*zDiv; i++){
+        bdBox[i].noOfParticles = 0;
+    }
+
+    // Injection *I;
+    // Injection *Ilist = Get_dpm_injections();
+    // //Reset neighbourlsit to zero
+     for(int i=0; i<np; i++)
+     {
+    //     Particle *p;
+    //     loop(p,I->p)
+    //     {
+    // //Assign to bDBox cells and update neighbour list
+    
+        int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
+        int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
+        int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
+        int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+        
+        //printf("ADD TO CELL INDEX %d\n",cellIndex);
+    //     //writeLog("logfile2.log","ADD TO BD BOX",(double)cellIndex);
+    //     //insert particle to cell
+
+         insertToBdBox(i,cellIndex);
+    //     }
+     }
+    //     //printf("Cell index %d, %d, %d\n",iIndex,jIndex,kIndex);
+    
+}
+
+
+/*
+Update neighbour list for a given particle
+For a given particle scan through all neighbour cells and fetch particles within
+the neighbour region
+param:
+pI - particle index
+*/
+void updateNeighbourList(int ip){
+    demPart[ip].noOfNeigh = 0;
+    int iIndex = ceil((demPart[ip].pos[0]-xmin)/domainDx);
+    int jIndex = ceil((demPart[ip].pos[1]-ymin)/domainDy);
+    int kIndex = ceil((demPart[ip].pos[2]-zmin)/domainDz);
+
+    if(iIndex*jIndex*kIndex > xDiv*yDiv*zDiv){
+        writeLogNum("logfile2.log","iIndex*jIndex*kIndex > xDiv*yDiv*zDiv ",iIndex*jIndex*kIndex);
+    }
+
+    
+  
+    for(int r=kIndex-1; r<kIndex+2; r++){
+        for(int q=jIndex-1; q<jIndex+2; q++){
+            for(int p=iIndex-1; p<iIndex+2; p++){
+                int neighCellIndex = p + q*xDiv + r*xDiv*yDiv;
+                if(neighCellIndex>xDiv*yDiv*zDiv){
+                    writeLogNum("logfile2.log","neighCellIndex>xDiv*yDiv*zDiv ",neighCellIndex);
+                }
+                if(iIndex*jIndex*kIndex < 0){
+                    writeLogNum("logfile2.log","iIndex*jIndex*kIndex < 0 ",iIndex*jIndex*kIndex);
+                }
+
+                for(int j=0; j<bdBox[neighCellIndex].noOfParticles; j++){
+                    int jp = bdBox[neighCellIndex].parts[j];
+                    //printf("NEIGH CENT DIST %d %d %lf\n",ip,jp, getCenterDist(ip,jp)*1e3/lengthFactor);
+                    if(getCenterDist(ip,jp)-0.5*(demPart[ip].dia+demPart[jp].dia) < cutGap && ip != jp){
+                        //writeLogNum("logfile2.log","NEIGH ADDED ",jp);
+                        //printf("NEIGH ADDED %d %d\n", ip, jp);
+                        addNeighbour(ip,jp);
+                    }
+                }
             }
-            holePosition++;
         }
     }
 }
+
+
 

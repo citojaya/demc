@@ -5,87 +5,202 @@
 
 //#include "double_math.h"
 
-
+/* Program begining*/
 int main(void){
+    printf("START\n");
     run();
 }
 
-void test(){
-    // struct MatType *mat;
-    // allocateMat(mat);
-
-    // mat[2].density = 1000.0;
-    // printf("Density %f\n",mat[1].density);
-
-    // int *num;
-    // num  = allocateNumArray(num);
-    // for(int i=0; i<num_of_mats; i++) printf("%i\n", num[i]);
-    // int *nebListIndex = allocateIntArray(num_of_mats); 
-    // nebListIndex[1] = 1;
-    // //for(int i=0; i<num_of_mats; i++) printf("%f\n", nebList[i]);  
-
-    // int *boundX;
-    // boundX = &nebListIndex[1];
-    // printf("Before %i\n",*boundX);
-    // nebListIndex[1] = 50;
-    // printf("After %i\n",*boundX);
-}
+/* Run the program*/
 void run(){
-    // Read input file 
-    int np;
-    readData("infile", &np);
-    printf("PAR  %d\n",np);
-    sortedList = allocateDoubleArray(np*2);
-    sortedParIndex = allocateIntArray(np*2);
-    parPosX = allocateDoubleArray(np);
-    parPosY = allocateDoubleArray(np);
-    parPosZ = allocateDoubleArray(np);
-    cellSE = allocateIntArray(np*2);
-    parDia = allocateDoubleArray(np);
-    cellSE = allocateIntArray(np*3);
-    parNb = allocateIntArray(np*nbSize);
-    parNoOfNb = allocateIntArray(np);
+    //***** Test code ***********
+    largestParDia = 0.1; //(mm)
+    xmin = 0.042; //(m)
+    xmax = 0.057;
+    ymin = -0.001;
+    ymax = 0.001;
+    zmin = -0.007;
+    zmax = 0.014;
+    // xmin = xmin - 4.0*largestParDia*conversion;
+    // xmax = xmax + 4.0*largestParDia*conversion;
+    // ymin = ymin - 4.0*largestParDia*conversion;
+    // ymax = ymax + 4.0*largestParDia*conversion;
+    // zmin = zmin - 4.0*largestParDia*conversion;
+    // zmax = zmax + 4.0*largestParDia*conversion;
+    xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
+    yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
+    zDiv = floor((zmax-zmin)/(largestParDia*conversion*multif3));
 
-    //initialize scale factors
-    setScaleFactors();
+    domainDx = (xmax-xmin)/xDiv;
+    domainDy = (ymax-ymin)/yDiv;
+    domainDz = (zmax-zmin)/zDiv;
 
-    // Read particle information
-    diaInput("pardia", parDia, parPosX, parPosY, parPosZ, &np);
+    xmin -= 3*domainDx;
+    ymin -= 3*domainDy;
+    zmin -= 3*domainDz;
+
+    xmax += 3*domainDx;
+    ymax += 3*domainDy;
+    zmax += 3*domainDz;
+
+    xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
+    yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
+    zDiv = floor((zmax-zmin)/(largestParDia*conversion*multif3));
+
+    domainDx = (xmax-xmin)/xDiv;
+    domainDy = (ymax-ymin)/yDiv;
+    domainDz = (zmax-zmin)/zDiv;
+
+    //writeLogLine("DOMAIN domainDx, domainDy, domainDz\n");
+    printf("Domain dx,dy,dz %lf, %lf, %lf\n",domainDx, domainDy, domainDz);
+    printf("xDiv, yDiv, zDiv %d, %d, %d \n",xDiv, yDiv, zDiv);
+    //writeLogNum("logfile.log", "domainDx ", domainDx);
+    //printf("%d,%d,%d,%lf,%lf,%lf\n",xDiv,yDiv,zDiv,domainDx,domainDy,domainDz,xmin*conversion,ymin*conversion,zmin*conversion);
+    demInit();
+    readParticleData("initial.inj");
+
+    //Read particle information
     
-    // Initialize neighbourlist array for the first time
-    initialize(sortedList, sortedParIndex, cellSE, np, parPosX, parDia);
-
-    printf("Before sorting\n");
-    for (int i=0; i<np*2; i++){
-        printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);
+    //Set mass
+    for(int i=0; i<np; i++){
+        demPart[i].mass = (4.0/3.0)*PI*pow((0.5*demPart[i].dia),3.0)*dens;
+        printf("POSITION %lf,%lf,%lf\n",demPart[i].pos[0],demPart[i].pos[1],demPart[i].pos[2]);
     }
 
-    //Neighbourlist sorting for the first time
-    insertionSort(sortedList, np*2, sortedParIndex, cellSE, 1);
+    //Setup DEM scaling 
+    setReduceUnits(); 
 
-    //Assign particle neighbours for the first time
-    assignNeighbours(sortedList, sortedParIndex, cellSE, np*2);
-
-    //Sort neighbourlist for each iteration
-    insertionSort(sortedList, np*2, sortedParIndex, cellSE, 0);
-    printf("After sorting\n");
-    for (int i=0; i<np*2; i++){
-        printf("%lf, %d, %d\n", sortedList[i], sortedParIndex[i], cellSE[i]);
-    }
-    //updateParPosition();
-    //parIndex = allocateIntArray(np);
+    //Set contact surface
  
+    printf("Timestep %lf\n",timeStep);
+    //Assign to bDBox cells
+    addToBdBox();
 
-    // Delete dynamic memeory allocation
-    free(parPosX);
-    free(parPosY);
-    free(parPosZ);
-    free(sortedList);
-    free(sortedParIndex);
-    free(cellSE);
-    //free(parIndex);
-    free(parDia);
-    free(parNb);
+    //Set DEM gravitational force
+    //assignGravity();
+    
+    printf("CUTGAP %lf\n", cutGap/lengthFactor);
+    //Update neighbour list
+    for (int i=0; i<np; i++){
+        updateNeighbourList(i);
+    }
+
+    // int count = 0;
+    for(int i=0; i<500000; i++){
+        demLoop();
+   
+        cycleCount++;
+        if(cycleCount > 1000){
+            printf("%lf\n",demTime/timeFactor);
+            demSave();
+            cycleCount = 0;
+        }
+ 
+    }
+
+
+
+    /******* Project vector testing code ********/
+    /*
+    double *u = allocateDoubleArray(3);
+    double *p = allocateDoubleArray(3);
+
+    double *a = allocateDoubleArray(3);
+    double *b = allocateDoubleArray(3);
+    double *c = allocateDoubleArray(3);
+    double *res = allocateDoubleArray(3);
+    double *n1 = allocateDoubleArray(3);
+    double *n2 = allocateDoubleArray(3);
+    double *n3 = allocateDoubleArray(3);
+
+    a[0] = 5.0;
+    a[1] = 0.0;
+    a[2] = 0.0;
+
+    b[0] = 0.0;
+    b[1] = 5.0;
+    b[2] = 0.0;
+
+    p[0] = 5.0;
+    p[1] = 5.0;
+    p[2] = 0.4;
+
+    n1[0] = 0.0;
+    n1[1] = 0.0;
+    n1[2] = 0.0;
+
+    n2[0] = 8.0;
+    n2[1] = 0.0;
+    n2[2] = 0.0;
+
+    n3[0] = 0.0;
+    n3[1] = 6.0;
+    n3[2] = 0.0;
+
+    
+
+    crossProd(a,b,u);
+    printf("cross prod %lf,%lf,%lf \n",u[0],u[1],u[2]);
+    unitVec(u,u);
+    //printf("unit vector %lf,%lf,%lf \n",u[0],u[1],u[2]);
+
+    printf("OVERLAP %lf\n",getOverlap(p,1.0,n3,n2,n1,u));
+
+    //projVec(p,u,res,0);
+    //printf("proj vector %lf,%lf,%lf \n",res[0],res[1],res[2]);
+
+    free(res);
+    free(u);
+    free(p);
+    free(a);
+    free(b);
+    free(c);
+    free(n1);
+    free(n2);
+    free(n3);
+    */
+/*
+    for(int i=0; i<5; i++){
+        demLoop();
+    }
+    // demSave();
+    */
+
+
+ /******* Testing code for neighbourlist, currently not in use *******/
+ 
+/*********************************************************************************/
+    
+    // Delete dynamic memeory
+
+  // Delete dynamic memeory
+  free(uVec);
+  free(ipRVec);
+  free(jpRVec);
+
+  free(bdBox);
+    
+  free(ijVec);
+    //free(tempVec);
+  free(rotVel);
+  free(ipCntPntVel);
+  free(jpCntPntVel);
+  free(cntPntVel);
+
+  for(int i=0; i<np; i++){
+    free(demPart[i].pos);
+    free(demPart[i].angVel);
+    free(demPart[i].vel);
+    free(demPart[i].hisDisp);
+    free(demPart[i].force);
+    free(demPart[i].momentum);
+    free(demPart[i].faceNode1);
+    free(demPart[i].faceNode2);
+    free(demPart[i].faceNode3);
+    free(demPart[i].surfNorm);
+  }
+  free(demPart);
+    
     printf("All good!\n");
     // free(nebListIndex);
 }

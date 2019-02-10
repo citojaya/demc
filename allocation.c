@@ -9,10 +9,12 @@ void initialize(double *nbList, int *parIndex, int *cellSE, int np,
     for (int i=0; i<np; i++){
         sortedList[j] = pos[i] - 0.5*parDia[i];
         sortedList[j+1] = pos[i] + 0.5*parDia[i];
-        parIndex[j] = i;
-        parIndex[j+1] = i;
-        cellSE[j] = 1;
-        cellSE[j+1] = 2;
+        parIndex[j] = i; //particle index
+        parIndex[j+1] = i; //particle index
+        cellSE[j] = 1; //cell start
+        cellSE[j+1] = 2; //cell end
+        parCIndex[j] = j; //cell start index for each particle
+        parCIndex[j+1] = j+1; //cell end index for each particle
         j += 2;
     }
 }

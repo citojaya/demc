@@ -1,7 +1,7 @@
 #include <math.h>
 #include "common.h"
 
-void diaInput(char *infile, double *parDia, double *parPos, int *np){
+void diaIn(char *infile, double *parDia, double *parPos, int *np){
 	char filename[20];
 	strcpy(filename, infile);
 	strcat(filename ,".in"); 
