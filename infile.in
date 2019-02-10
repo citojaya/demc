@@ -16,7 +16,7 @@ WALL_NO
 Particle information used in the test program
 ==============================================================
 PAR_NUMBER
-10
+20000
 
 ==============================================================
 # Container Type #

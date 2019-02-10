@@ -57,6 +57,7 @@ void demInit(){
     //printf("TIME STEP %lf\n",timeStep/timeFactor);
 
     writeLogNum("logfile.log","Update DPM ",updateDPM);
+    printf("Particle Array Size %d\n",parArraySize);
     writeLogNum("logfile.log","Particle Array Size ",parArraySize);
     writeLogNum("logfile.log","density ",dens);
     writeLogNum("logfile.log","Youngs Modulus ",ymod);

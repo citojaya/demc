@@ -70,7 +70,7 @@ xShift = 46
 
 no_of_part = 0
 
-gap = float(dia)*0.2
+gap = float(dia)*0.5
 print(xDiv,yDiv,zDiv)
 for k in range(zDiv):
     z = k*float(dia)+gap
@@ -105,10 +105,10 @@ f.write(str(no_of_part)+"\n");
 for k in range(zDiv):
    for j in range(yDiv):
         for i in range(xDiv):
-            sx = str(round((parX[i]+xShift)*1e-3,4))
-            sy = str(round((parY[j]+yShift)*1e-3,4))
-            sz = str(round((parZ[k]+zShift)*1e-3,4))
-            sd = str(round(float(dia)*1e-3,4))
+            sx = str(round((parX[i]+xShift)*1e-3,6))
+            sy = str(round((parY[j]+yShift)*1e-3,6))
+            sz = str(round((parZ[k]+zShift)*1e-3,6))
+            sd = str(round(float(dia)*1e-3,6))
             # s = " ".join(str(round(parX[i]*1e-3,4)))
             # if(parZ[k]+zShift > 25 and parZ[k]+zShift < 45):
             f.write(sx+" "+sy+" "+sz+" "+sd+"\n")

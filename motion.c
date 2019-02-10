@@ -74,7 +74,7 @@ void neighbourContactForce(int pI){
         int jp = demPart[pI].neigh[i];
         double gap = getCenterDist(pI,jp)-(demPart[pI].dia+demPart[jp].dia)*0.5;
         if(gap < 0.0){
-            printf("OVERLAP %lf\n",gap*1e3/lengthFactor);
+            //printf("OVERLAP %lf\n",gap*1e3/lengthFactor);
             partContactForce(pI,jp, -gap);
         }
     }
