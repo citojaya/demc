@@ -7,17 +7,32 @@ At every DPM time step this method is called by DEFINE_DPM_SOURCE
 void demLoop(){
     demTime += timeStep;
     for(int i=0; i<np; i++){
-        //deleteParticle(i);
+        if(demPart[i].displacement > allowedDisp){
+            int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
+            int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
+            int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
+            int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+            deleteParticle(i, cellIndex);
+        }
         forceCalculation(i);
         updatePosition(i);
-        //addToBdBox(i);
+        if(demPart[i].displacement > allowedDisp){
+            int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
+            int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
+            int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
+            int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+            addToBdBox(i, cellIndex);
+
+        }
         demPart[i].currentTime += demPart[i].dt;
+        
     }
-    addToBdBox();
+    //addToBdBox();
     
     for(int i=0; i<np; i++){
         if(demPart[i].displacement > allowedDisp){
             updateNeighbourList(i);
+            demPart[i].displacement = 0.0;
         }
     }
 }

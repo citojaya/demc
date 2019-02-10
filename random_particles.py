@@ -54,19 +54,15 @@ parY = []
 parZ = []
 
 if opts.verbose:print ("Generating random particles\n")
-xDiv = 3
-yDiv = 40
-zDiv = 25
 
+xDiv = 6
+#yDiv = 8
+yDiv = 5
+zDiv = 5
 
-xDiv = 10
-yDiv = 2
-zDiv = 10
-
-
-yShift = -0.4
-zShift = -4.8
 xShift = 46
+yShift = -0.4
+zShift = -3.0
 
 no_of_part = 0
 

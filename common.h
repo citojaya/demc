@@ -21,13 +21,13 @@
 /*------------ Particle information -------------*/
 //#define largestParDia 0.1f //mm
 #define largestParDensity 2500.0f //kgm^-3
-#define multif3 2.5 //multification factor used in bounding box divisions
+#define multif3 2.8 //multification factor used in bounding box divisions
 #define multif1_2 1.2f //mulficiation factor used to adjust boundary size
 #define offset 10.0f //boundary is adjusted by offset (mm) in order to include additional cells
 //#define arrSize 5
 #define DIM 3 // 3D problem
 //#define NO_OF_PARTICLES 100 //Particle array size
-#define NBSIZE 80 //size of neighbourlist
+#define NBSIZE 50 //size of neighbourlist
 #define NO_OF_FLUID_CELLS 20 //number of fluid cells in a bounding box
 #define NO_OF_FACES 3 //number of faces contacting with particles
 #define NO_OF_PARTICLES_IN_BDCELL 50

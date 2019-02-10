@@ -45,7 +45,7 @@ CUTGAPFORNEIGHBORLIST
 # DEN, YMOD, POIS, SFC,  DMPN, ROLFRICT
 ==============================================================
 MATERIAL
-2.5E3    2.0E7   2.9E-1  0.2E-1   20.0E-4  1E-3
+2.5E3    2.0E7   2.9E-1  0.2E-1   1.0E-4  1E-3
 
 DPM
 0

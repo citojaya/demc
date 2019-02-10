@@ -35,13 +35,13 @@ void run(){
     domainDy = (ymax-ymin)/yDiv;
     domainDz = (zmax-zmin)/zDiv;
 
-    xmin -= 3*domainDx;
-    ymin -= 3*domainDy;
-    zmin -= 3*domainDz;
+    xmin -= domainDx;
+    ymin -= domainDy;
+    zmin -= domainDz;
 
-    xmax += 3*domainDx;
-    ymax += 3*domainDy;
-    zmax += 3*domainDz;
+    xmax += domainDx;
+    ymax += domainDy;
+    zmax += domainDz;
 
     xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
     yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
@@ -64,7 +64,7 @@ void run(){
     //Set mass
     for(int i=0; i<np; i++){
         demPart[i].mass = (4.0/3.0)*PI*pow((0.5*demPart[i].dia),3.0)*dens;
-        printf("POSITION %lf,%lf,%lf\n",demPart[i].pos[0],demPart[i].pos[1],demPart[i].pos[2]);
+        //printf("POSITION %lf,%lf,%lf\n",demPart[i].pos[0],demPart[i].pos[1],demPart[i].pos[2]);
     }
 
     //Setup DEM scaling 
@@ -86,11 +86,11 @@ void run(){
     }
 
     // int count = 0;
-    for(int i=0; i<500000; i++){
+    for(int i=0; i<1000000; i++){
         demLoop();
    
         cycleCount++;
-        if(cycleCount > 1000){
+        if(cycleCount > 5000){
             printf("%lf\n",demTime/timeFactor);
             demSave();
             cycleCount = 0;
