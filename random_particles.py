@@ -55,10 +55,9 @@ parZ = []
 
 if opts.verbose:print ("Generating random particles\n")
 
-xDiv = 3
-#yDiv = 8
-yDiv = 3
-zDiv = 5
+xDiv = 80
+yDiv = 8
+zDiv = 30
 
 xShift = 46
 yShift = -0.4

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 /*--------------Common definitions---------------*/
 #define NUM_MAT 2    // two types material
@@ -25,10 +26,10 @@
 
 #define DIM 3 // 3D problem
 //#define NO_OF_PARTICLES 100 //Particle array size
-#define NBSIZE 50 //size of neighbourlist
+#define NBSIZE 70 //size of neighbourlist
 #define NO_OF_FLUID_CELLS 20 //number of fluid cells in a bounding box
 #define NO_OF_FACES 3 //number of faces contacting with particles
-#define NO_OF_PARTICLES_IN_BDCELL 50
+#define NO_OF_PARTICLES_IN_BDCELL 40
 //Testing parameters
 #define FVOLF 0.5f //fluid volume fraction
 #define BETA 0.4f //interphase momentum exchange coefficient
@@ -53,6 +54,7 @@
 //double *sortedList; //sorted array for recording particle start and end positions
 //double *nrmDisp;
 FILE *LogFile;
+int prevCPUTime;
 int time_count;
 int particle_counter;
 int noOfWalls;

@@ -4,6 +4,7 @@
 /*Read particle information and domain information
 */
 void demInit(){
+    prevCPUTime = 0;
     cycleCount = 0;
     saveDEM = 0;
     updateDPM= 0;
@@ -210,7 +211,7 @@ void setReduceUnits()
 	freqFactor = sqrt(refLength/gravity);
 	inertiaFactor = 6.0/(PI*pow(refLength,5)*refDensity);
 
-    cutGap = 1.2*largestParDia*conversion*lengthFactor;
+    cutGap = 1.1*largestParDia*conversion*lengthFactor;
 
     dsmaxCff = sfc*(2.0-pois)/(2.0*(1.0-pois));
     //writeLogNum("logfile2.log"," DS MAX",dsmaxCff);

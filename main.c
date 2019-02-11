@@ -91,8 +91,11 @@ void run(){
    
         cycleCount++;
         if(cycleCount > 5000){
-            printf("%lf\n",demTime/timeFactor);
-            demSave();
+            clock_t CPU_time_1 = clock();
+            printf("%lf ",demTime/timeFactor);
+            printf(" CPU time : %d \n", CPU_time_1-prevCPUTime);
+            prevCPUTime = CPU_time_1;
+            //demSave();
             cycleCount = 0;
         }
  
