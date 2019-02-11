@@ -237,7 +237,7 @@ void setReduceUnits()
     }
 
     //Find allowed displacment for neighbourlist update
-    rIn = largestParDia*lengthFactor;
+    rIn = largestParDia*conversion*lengthFactor;
     rOut = 1.55*rIn; //By definition
     allowedDisp = 0.5*(rOut-rIn);
 
