@@ -21,13 +21,13 @@
 
 /*------------ Particle information -------------*/
 //#define largestParDia 0.1f //mm
-#define largestParDensity 2500.0f //kgm^-3
+#define largestParDensity 1500.0f //kgm^-3
 #define multif3 2.8 //multification factor used in bounding box divisions
 
 #define DIM 3 // 3D problem
 //#define NO_OF_PARTICLES 100 //Particle array size
-#define NBSIZE 70 //size of neighbourlist
-#define NO_OF_FLUID_CELLS 20 //number of fluid cells in a bounding box
+#define NBSIZE 30 //size of neighbourlist
+#define NO_OF_FLUID_CELLS 1 //number of fluid cells in a bounding box
 #define NO_OF_FACES 3 //number of faces contacting with particles
 #define NO_OF_PARTICLES_IN_BDCELL 40
 //Testing parameters
@@ -88,7 +88,7 @@ double rIn, rOut, allowedDisp; //if particle displacement > allowedDisp -> updat
 
 double *uVec, *ipRVec, *jpRVec, *ijVec, *rotVel;
 double *ipCntPntVel, *jpCntPntVel, *cntPntVel;
-double dens, ymod, pois, sfc, rf, rec, dmpn, elasticMod; //particle material property
+double dens, ymod, pois, sfc, rf, rec, dmpn, elasticMod, haConst; //particle material property
 double dsmaxCff, dti, dd, dsmax, fdt; //used in contact force calculation
 double cyldia; //cylinder diameter
 double timeStep, demTime, maxTime;
@@ -141,8 +141,16 @@ struct demParticle{
 	double dia, inert, mass, nrmDisp;
 	double *pos, *angVel, *vel, *hisDisp, *force, *momentum;
 	double *faceNode1, *faceNode2, *faceNode3, *surfNorm;
-	int neigh[NBSIZE];
+	int neigh[NBSIZE]; // array for neighbour list
+	int neighCntFDone[NBSIZE]; //keeps a reocrd of neignbour particles which has already force calculation done
+	int noOfCntF;
+
+	//int neighCntCalculated[NBSIZE];
 	int noOfNeigh;
+	int prevCellIndex;
+	int insertable;
+	double ha; //Hamaker constant
+	//int pCntFcalculated;
 
 };
 
@@ -168,7 +176,8 @@ void insertToBdBox(int p, int cI);
 void addToBdBox();
 void addFaceToBdBox();
 void readInput(char *infile, int *np, double *dens, double *ymod, 
-			double *pois, double *sfc, double *rec, double *dmpn, double *rf, double *cyldia, double *dt, int *nW, int *updateDPM);
+			double *pois, double *sfc, double *rec, double *dmpn, double *rf, double *cyldia, 
+			double *dt, int *nW, int *updateDPM, double *haConst);
 void findRec(FILE *inFile, char* strDest);
 void diaInput(char *diaFile, struct demParticle *par, int *np);
 void readWalls(char *infile, int *walls);
@@ -187,6 +196,8 @@ void allocate();
 void updateForce(int p);
 void partContactForce(int ip, int jp, double nrmDsp);
 void boundaryContactForce(int pI, double *n1, double *n2, double *n3, double *uVec);
+void ppVWForce(int ip, int jp, double vGap);
+void pWallVWForce(int p, double vGap, double *uVec);
 //void dragForce(int pI);
 void assignGravity();
 double getOverlap(double *parPos, double dia, double *n1, double *n2, double *n3, double *uVec);

@@ -14,19 +14,14 @@ int main(void){
 /* Run the program*/
 void run(){
     //***** Test code ***********
-    largestParDia = 0.1; //(mm)
-    xmin = 0.042; //(m)
-    xmax = 0.057;
-    ymin = -0.001;
-    ymax = 0.001;
-    zmin = -0.007;
-    zmax = 0.014;
-    // xmin = xmin - 4.0*largestParDia*conversion;
-    // xmax = xmax + 4.0*largestParDia*conversion;
-    // ymin = ymin - 4.0*largestParDia*conversion;
-    // ymax = ymax + 4.0*largestParDia*conversion;
-    // zmin = zmin - 4.0*largestParDia*conversion;
-    // zmax = zmax + 4.0*largestParDia*conversion;
+    largestParDia = 1.0; //(mm)
+    xmin = 0.0; //(m)
+    xmax = 0.250;
+    ymin = -0.005;
+    ymax = 0.005;
+    zmin = -0.050;
+    zmax = 0.050;
+
     xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
     yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
     zDiv = floor((zmax-zmin)/(largestParDia*conversion*multif3));
@@ -35,13 +30,13 @@ void run(){
     domainDy = (ymax-ymin)/yDiv;
     domainDz = (zmax-zmin)/zDiv;
 
-    xmin -= domainDx;
-    ymin -= domainDy;
-    zmin -= domainDz;
+    xmin -= 2.*domainDx;
+    ymin -= 2.*domainDy;
+    zmin -= 2.*domainDz;
 
-    xmax += domainDx;
-    ymax += domainDy;
-    zmax += domainDz;
+    xmax += 2.*domainDx;
+    ymax += 2.*domainDy;
+    zmax += 2.*domainDz;
 
     xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
     yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
@@ -86,16 +81,16 @@ void run(){
     }
 
     // int count = 0;
-    for(int i=0; i<1000000; i++){
+    for(int i=0; i<100000; i++){
         demLoop();
    
         cycleCount++;
-        if(cycleCount > 5000){
+        if(cycleCount > 500){
             clock_t CPU_time_1 = clock();
             printf("%lf ",demTime/timeFactor);
             printf(" CPU time : %d \n", CPU_time_1-prevCPUTime);
             prevCPUTime = CPU_time_1;
-            //demSave();
+            demSave();
             cycleCount = 0;
         }
  

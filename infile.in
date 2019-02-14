@@ -42,10 +42,10 @@ CUTGAPFORNEIGHBORLIST
 
 ==============================================================
 # Material Property #
-# DEN, YMOD, POIS, SFC,  DMPN, ROLFRICT
+# DEN, YMOD, POIS, SFC,  DMPN, ROLFRICT, HAMAKER CONSTANT
 ==============================================================
 MATERIAL
-2.5E3    2.0E7   2.9E-1  0.2E-1   1.0E-4  1E-3
+1.5E3    1.0E7   2.9E-1  1.0E-1   2.0E-5  1E-3   6.5E-20
 
 DPM
 0
@@ -57,5 +57,5 @@ DPM
 # 2. packing
 ==============================================================
 SIMULATION
-0.5E-7f
+1.0E-6f
 

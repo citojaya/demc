@@ -7,37 +7,72 @@ At every DPM time step this method is called by DEFINE_DPM_SOURCE
 void demLoop(){
     demTime += timeStep;
     for(int i=0; i<np; i++){
-        if(demPart[i].displacement > allowedDisp){
-            int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
-            int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
-            int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
-            int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
-            deleteParticle(i, cellIndex);
-        }
+        // if(demPart[i].displacement > allowedDisp){
+        //     int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
+        //     int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
+        //     int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
+        //     int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+        //     deleteParticle(i, cellIndex);
+        // }
         // //Find contact forces
         forceCalculation(i);
         // //Update position
         updatePosition(i);
 
-        if(demPart[i].displacement > allowedDisp){
-            int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
-            int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
-            int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
-            int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
-            addToBdBox(i, cellIndex);
-
-        }
+        // if(demPart[i].displacement > allowedDisp){
+        //     int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx);
+        //     int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy);
+        //     int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz);
+        //     int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+        //     addToBdBox(i, cellIndex);
+        // }
         demPart[i].currentTime += demPart[i].dt;
         
     }
-    //addToBdBox();
-    
+
+    addToBdBox();
+
     for(int i=0; i<np; i++){
         if(demPart[i].displacement > allowedDisp){
-            updateNeighbourList(i);
-            demPart[i].displacement = 0.0;
-        }
+          updateNeighbourList(i);
+          demPart[i].displacement = 0.0;
+        }       
     }
+
+
+    /*
+    for(int ip=0; ip<np; ip++){
+        int iIndex = ceil((demPart[ip].pos[0]-xmin)/domainDx);
+        int jIndex = ceil((demPart[ip].pos[1]-ymin)/domainDy);
+        int kIndex = ceil((demPart[ip].pos[2]-zmin)/domainDz);
+        int cellIndex = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;
+        //If current cell index is not same as previous cell index -> update cell index         
+        if(cellIndex != demPart[ip].prevCellIndex){
+            deleteParticle(ip, demPart[ip].prevCellIndex);//delete previous cell index
+            if(demPart[ip].insertable == 1){
+                insertToBdBox(ip, cellIndex); //update new cell index
+                demPart[ip].insertable = 0;
+                demPart[ip].prevCellIndex = cellIndex;
+            }
+        }
+        if(demPart[ip].displacement > allowedDisp){
+            demPart[ip].displacement = 0.0;
+            //Go through neighbour list and delete this particle from its neighbour particle
+            for(int j=0; j<demPart[ip].noOfNeigh; j++){
+                //If not in neighobue region delete it
+                int jp = demPart[ip].neigh[j];
+            
+                if(getCenterDist(jp,ip) > cutGap){
+                    deleteNeighbour(jp,ip); //delete ip from jp neighbour list
+                }
+            }
+            demPart[ip].noOfNeigh = 0; //reset neighbour list to zero
+            //Update new neighbour list
+            updateNeighbourList(ip);
+            
+        }
+    
+    }*/
 }
 
 /* Assign graviational force*/
@@ -86,17 +121,59 @@ double getOverlap(double *parPos, double dia, double *n1, double *n2, double *n3
 
 /*Find contact forces with all neighbour particles*/
 void neighbourContactForce(int pI){
+    int alreadyCalculated = 0;
     //Loop through all neighbour particles
     for(int i=0; i<demPart[pI].noOfNeigh; i++){
         //printf("Neighbours\n");
         int jp = demPart[pI].neigh[i];
+        for(int k=0; k<demPart[pI].noOfCntF; k++){
+            if(jp == demPart[pI].neighCntFDone[k]){
+                alreadyCalculated = 1;
+                break;
+            }
+        }
         double gap = getCenterDist(pI,jp)-(demPart[pI].dia+demPart[jp].dia)*0.5;
         if(gap < 0.0){
             //printf("OVERLAP %lf\n",gap*1e3/lengthFactor);
             partContactForce(pI,jp, -gap);
         }
+        //ppVWForce(pI, jp, gap);//Calculate vanderwal force
     }
 }
+
+/*Particle-particle vanderwal force*/
+void ppVWForce(int ip, int jp, double vGap){
+    
+    double ipDia = demPart[ip].dia;
+    double jpDia = demPart[jp].dia;
+    double vGapMn = 0.5*(ipDia+jpDia)*0.01;
+    
+    double ijHa = sqrt(demPart[ip].ha*demPart[jp].ha);
+    if(vGap < vGapMn){vGap = vGapMn;}
+    
+    
+    double fv = -ijHa*pow((ipDia*jpDia),3)*(vGap + 0.5*(ipDia + jpDia))
+        /pow(((pow(vGap,2) + vGap*ipDia + vGap*jpDia)*(pow(vGap,2) + ipDia*vGap + jpDia*vGap + ipDia*jpDia)),2);       
+    double *uVec = allocateDoubleArray(DIM);
+    vecSub(demPart[ip].pos, demPart[jp].pos, uVec);
+    unitVec(uVec, uVec);
+    demPart[ip].force[0] += uVec[0]*fv;
+    demPart[ip].force[1] += uVec[1]*fv;
+    demPart[ip].force[2] += uVec[2]*fv; 
+    free(uVec);
+}
+
+/*Particle-wall vanderwal force*/
+void pWallVWForce(int p, double vGap, double *uVec){
+    double fv = -demPart[p].ha*pow(demPart[p].dia,3)*0.5/pow((vGap*(vGap+demPart[p].dia)),2);
+    demPart[p].force[0] += uVec[0]*fv;
+    demPart[p].force[1] += uVec[1]*fv;
+    demPart[p].force[2] += uVec[2]*fv; 
+   
+}
+
+
+
 /*
 Calculate particle-wall contact forces
 param:
@@ -105,7 +182,6 @@ nrmDisp - overlap
 uVec - unit vector normal to contact surface
 */
 void surfaceContactForce(int p, double nrmDisp, double *uVec){
-    //double rStar = 0.5*P_DIAM(p)*lengthFactor;
     double rStar = 0.5*demPart[p].dia;
     sclVecMult(-0.5*demPart[p].dia,uVec,ipRVec);
     
@@ -113,19 +189,12 @@ void surfaceContactForce(int p, double nrmDisp, double *uVec){
     vecAdd(demPart[p].vel,rotVel,ipCntPntVel);
 
     double *relVel = allocateDoubleArray(DIM);
-    // double *pVel = allocateDoubleArray(DIM);
-    // pVel[0] = P_VEL(p)[0]*velocityFactor;
-    // pVel[1] = P_VEL(p)[1]*velocityFactor;
-    // pVel[2] = P_VEL(p)[2]*velocityFactor;
 
-    
-    //sclVecMult(1.0,pVel,relVel);
     sclVecMult(1.0,demPart[p].vel,relVel);
     
     double nrmVel = dotProduct(relVel,uVec);
     free(relVel);
-    //free(pVel);
-    
+        
     sclVecMult(1.0,ipCntPntVel,cntPntVel);
 
     double *totalForce = allocateDoubleArray(DIM);
@@ -152,6 +221,15 @@ void surfaceContactForce(int p, double nrmDisp, double *uVec){
     // writeLogNum("logfile2.log"," disp Z ",disp[2]);
 
     double *fdtVec = allocateDoubleArray(DIM);
+    double *tngUVec = allocateDoubleArray(DIM);
+
+    unitVec(disp, tngUVec);
+    tngUVec[0] = -tngUVec[0];
+    tngUVec[1] = -tngUVec[1];
+    tngUVec[2] = -tngUVec[2];
+    sclVecMult(fdt,tngUVec,fdtVec);
+    
+/*
     if(dd < 1e-6){
         dd = 0.0;
     }
@@ -179,20 +257,18 @@ void surfaceContactForce(int p, double nrmDisp, double *uVec){
     }
 
     sclVecMult(1.0,disp, demPart[p].hisDisp);
-
+*/
     //sum of forces
     double nrmForce = (nrmCntForce + nrmDampForce);
     sclVecMult(nrmForce, uVec, totalForce);
 
-    // writeLogNum("logfile2.log"," FDT X ",fdtVec[0]);
-    // writeLogNum("logfile2.log"," FDT Y ",fdtVec[1]);
-    // writeLogNum("logfile2.log"," FDT Z ",fdtVec[2]);
     vecAdd(totalForce, fdtVec, totalForce);
     crossProd(ipRVec, totalForce, momentum);
     double *rotMom = allocateDoubleArray(DIM);
     sclVecMult(0.5*rf*demPart[p].dia*nrmCntForce, demPart[p].angVel, rotMom);
     vecAdd(momentum, rotMom, momentum);
 
+ 
     //Update force and momentum on particle
     vecAdd(demPart[p].force, totalForce, demPart[p].force);
     vecAdd(demPart[p].momentum, momentum, demPart[p].momentum);
@@ -205,6 +281,7 @@ void surfaceContactForce(int p, double nrmDisp, double *uVec){
     free(totalForce);
     free(momentum);
     free(disp);
+    free(tngUVec);
     
 }
 
@@ -260,34 +337,14 @@ void partContactForce(int ip, int jp, double nrmDisp){
     fdt = sfc*nrmCntForce;
 
     double *fdtVec = allocateDoubleArray(DIM);
-    if(dd < 1e-6){
-        dd = 0.0;
-    }
-    if(dti < 1e-6){
-        dti = 0.0;
-    }
-    if(dd >= dsmax){
-        sclMult(dsmax/dd,disp);
-        dti = vecMag(tipCntPntDisp);
-        if(dti != 0){
-            sclVecMult(fdt/dti,tipCntPntDisp,fdtVec);
-        }
-        else{
-            sclMult(0.0,fdtVec);
-        }
-    }
-    else{
-        if(dd != 0.0){
-            fdt = fdt*(1.0 - pow((1.0 - dd/dsmax),1.5));
-            sclVecMult(-fdt/dd,disp,fdtVec);
-        }
-        else{
-            sclMult(0.0,fdtVec);
-        }
-    }
+    double *tngUVec = allocateDoubleArray(DIM);
 
-    sclVecMult(1.0,disp, demPart[ip].hisDisp);
-   
+    unitVec(disp, tngUVec);
+    tngUVec[0] = -tngUVec[0];
+    tngUVec[1] = -tngUVec[1];
+    tngUVec[2] = -tngUVec[2];
+    sclVecMult(fdt,tngUVec,fdtVec);
+       
     //sum of forces
     double nrmForce = (nrmCntForce + nrmDampForce);
     //writeLog("logfile2.log","nrmForce ",nrmForce);
@@ -302,6 +359,15 @@ void partContactForce(int ip, int jp, double nrmDisp){
     vecAdd(demPart[ip].force, totalForce, demPart[ip].force);
     vecAdd(demPart[ip].momentum, momentum, demPart[ip].momentum);
 
+    /*Contact force on other particle*/
+    sclVecMult(-1.0, totalForce, totalForce);
+    sclVecMult(-1.0, momentum, momentum);
+
+    vecAdd(demPart[jp].force, totalForce, demPart[jp].force);
+    vecAdd(demPart[jp].momentum, momentum, demPart[jp].momentum);   
+    demPart[jp].neighCntFDone[demPart[jp].noOfCntF] = ip;
+    demPart[jp].noOfCntF += 1;
+
     free(rotMom);
     free(fdtVec);
     free(tipCntPntDisp);
@@ -309,6 +375,8 @@ void partContactForce(int ip, int jp, double nrmDisp){
     free(totalForce);
     free(momentum);
     free(disp);
+    free(tngUVec);
+
 }
 
 
@@ -517,12 +585,12 @@ void forceCalculation(int p)
     
 
 
-    double xMax = 0.055*lengthFactor;
-    double zMax = 0.010*lengthFactor;
-    double yMax = 0.0005*lengthFactor;
-    double zMin = -0.005*lengthFactor;
-    double xMin = 0.045*lengthFactor;
-    double yMin =  -0.0005*lengthFactor;
+    double xMax = 0.15*lengthFactor;
+    double zMax = 0.05*lengthFactor;
+    double yMax = 0.005*lengthFactor;
+    double zMin = -0.05*lengthFactor;
+    double xMin = 0.1*lengthFactor;
+    double yMin =  -0.005*lengthFactor;
 
 
     //Contact with xMin
@@ -590,20 +658,18 @@ void forceCalculation(int p)
         surfaceContactForce(p, -gap, uVec);
     }
 
-    //Find particle-particle contact force
+    //Find particle-particle contact force and particle-particle Vanderwal force
     neighbourContactForce(p);
 
-    // writeLogNum("logfile2.log","pfFY ",pfFY);
-    // writeLogNum("logfile2.log","pGFY ",pGFY);
-    // demPart[p].force[0]  += pfFX + pGFX;
-    // demPart[p].force[1]  += pfFY + pGFY + partVol(p)*density;
-    // demPart[p].force[2]  += pfFZ + pGFZ;
-
+    //Vanderwal force
+    pWallVWForce(p, gap, uVec);  
 
 }
 
 void updatePosition(int p){
     
+    demPart[p].noOfCntF = 0; //reset
+    demPart[p].insertable = 1; //reset
     double dxDot = demPart[p].force[0]*timeStep/demPart[p].mass;
     double dyDot = demPart[p].force[1]*timeStep/demPart[p].mass;
     double dzDot = demPart[p].force[2]*timeStep/demPart[p].mass;

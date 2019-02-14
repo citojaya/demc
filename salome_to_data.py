@@ -70,6 +70,7 @@ f.close()
 #print(len(triangles_data))
 # sys.exit(0)
 
+yShift = -10
 f = open(file_name[:-5]+".dat","w")
 #f.write(str(len(vertices_data))+"\n")
 
@@ -80,7 +81,7 @@ f.write('ZONE T = "wall", N='+vertices_data[0].strip()+', \
   E= '+triangles_data[0].strip()+', F=FEPOINT, ET=triangle\n')
 for i in range(1,int(vertices_data[0])+1):
   tuple = vertices_data[i].split()
-  f.write(str(round(float(tuple[0])*1.0e3,3))+" "+str(round(float(tuple[1])*1.0e3,3))+\
+  f.write(str(round(float(tuple[0])*1.0e3,3))+" "+str(round(float(tuple[1])*1.0e3-yShift,3))+\
           " "+str(round(float(tuple[2])*1.0e3,3))+"   0   0   0   0.0  "+str(i)+"\n")
 
 # Write connectivity
@@ -102,9 +103,9 @@ for line in fin:
     else:
       #f.write(" ".join(tuple)+" 0.0\n")
       velMag = np.sqrt(pow(float(tuple[3]),2)+pow(float(tuple[4]),2)+pow(float(tuple[5]),2))
-      f.write(str(round(float(tuple[0])*10,2))+" "+str(round(float(tuple[1])*10,2))+" "+\
-      str(round(float(tuple[2])*10,2))+" "+str(round(float(tuple[3]),2))+" "+str(round(float(tuple[4]),3))+" "+\
-      str(round(float(tuple[5]),3))+" "+str(round(float(tuple[6])*10,3))+" "+str(round(velMag,3))+"\n")
+      f.write(str(round(float(tuple[0]),2))+" "+str(round(float(tuple[1]),2))+" "+\
+      str(round(float(tuple[2]),2))+" "+str(round(float(tuple[3]),2))+" "+str(round(float(tuple[4]),3))+" "+\
+      str(round(float(tuple[5]),3))+" "+str(round(float(tuple[6]),3))+" "+str(round(velMag,3))+"\n")
   count += 1
 
 fin.close()

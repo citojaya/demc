@@ -55,17 +55,17 @@ parZ = []
 
 if opts.verbose:print ("Generating random particles\n")
 
-xDiv = 80
-yDiv = 8
-zDiv = 30
+xDiv = 4 #max 44
+yDiv = 8  #max 8
+zDiv = 4
 
-xShift = 46
-yShift = -0.4
-zShift = -3.0
+xShift = 102
+yShift = -4
+zShift = -48
 
 no_of_part = 0
 
-gap = float(dia)*0.5
+gap = float(dia)*0.12
 print(xDiv,yDiv,zDiv)
 for k in range(zDiv):
     z = k*float(dia)+gap
@@ -95,15 +95,14 @@ print("Number of particles generated ",no_of_part,"\n")
 if opts.verbose:print ("Writing to injection file initial.inj")
 f = open("initial.inj","w")
 #f.write(str(len(vertices_data))+"\n")
-
-f.write(str(no_of_part)+"\n");
+f.write(str(no_of_part)+"\n")
 for k in range(zDiv):
    for j in range(yDiv):
         for i in range(xDiv):
             sx = str(round((parX[i]+xShift)*1e-3,6))
             sy = str(round((parY[j]+yShift)*1e-3,6))
             sz = str(round((parZ[k]+zShift)*1e-3,6))
-            sd = str(round(float(dia)*1e-3,6))
+            sd = str(round(float(dia)*1e-3,4))
             # s = " ".join(str(round(parX[i]*1e-3,4)))
             # if(parZ[k]+zShift > 25 and parZ[k]+zShift < 45):
             f.write(sx+" "+sy+" "+sz+" "+sd+"\n")

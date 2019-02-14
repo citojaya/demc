@@ -41,12 +41,13 @@ void readParticleData(char *infile){
 		ret = fscanf(injFile,"%lf",&demPart[i].dia);
 	}
 	fclose(injFile);
-	printf("%d \n",np);
+	printf("No of particles in the simulation %d \n",np);
 }
 
 /*---Read input data from a file ----*/
 void readInput(char *infile, int *np, double *dens, double *ymod, 
-			double *pois, double *sfc, double *rec, double *dmpn, double *rf, double *cyldia, double *dt, int *nW, int *updateDPM){
+			double *pois, double *sfc, double *rec, double *dmpn, double *rf, 
+			double *cyldia, double *dt, int *nW, int *updateDPM, double *haConst){
 	// input file reading
 	char filename[20];
 	strcpy(filename, infile);
@@ -84,6 +85,7 @@ void readInput(char *infile, int *np, double *dens, double *ymod,
 	fscanf(InFile, "%lf", sfc);
 	fscanf(InFile, "%lf", dmpn);
 	fscanf(InFile, "%lf", rf);
+	fscanf(InFile, "%lf", haConst);
 
 	findRec(InFile, "CylinderBC");
 	fscanf(InFile, "%lf", cyldia);

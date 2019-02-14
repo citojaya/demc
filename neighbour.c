@@ -101,7 +101,7 @@ void updateNeighbourList(int ip){
                 for(int j=0; j<bdBox[neighCellIndex].noOfParticles; j++){
                     int jp = bdBox[neighCellIndex].parts[j];
                     //printf("NEIGH CENT DIST %d %d %lf\n",ip,jp, getCenterDist(ip,jp)*1e3/lengthFactor);
-                    if(getCenterDist(ip,jp)-0.5*(demPart[ip].dia+demPart[jp].dia) < cutGap && ip != jp){
+                    if(getCenterDist(ip,jp) < cutGap && ip != jp){
                         //writeLogNum("logfile2.log","NEIGH ADDED ",jp);
                         //printf("NEIGH ADDED %d %d\n", ip, jp);
                         addNeighbour(ip,jp);

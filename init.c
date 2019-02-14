@@ -51,7 +51,7 @@ void demInit(){
 
     //Read material data
     readInput("infile", &parArraySize, &dens, &ymod, &pois, &sfc, &rec, &dmpn, &rf, &cyldia, &timeStep, 
-            &noOfWalls, &updateDPM);
+            &noOfWalls, &updateDPM, &haConst);
     allocate();
     //Read particle-wall contact surfaces
     readWalls("infile", walls);
@@ -125,11 +125,14 @@ void allocate(){
         demPart[i].faceNode3 = allocateDoubleArray(DIM);
         demPart[i].surfNorm = allocateDoubleArray(DIM);
         demPart[i].displacement = 0.0;
-
+        demPart[i].insertable = 1;
+        demPart[i].noOfCntF = 0;
+        
     }
 
 
     walls = allocateIntArray(noOfWalls);
+    //printf();
     //dpmList = (Tracked_Particle)malloc(2*sizeof(Tracked_Particle));
 
 }
@@ -153,6 +156,7 @@ cI - cell index
 void insertToBdBox(int p, int cI){
     bdBox[cI].parts[bdBox[cI].noOfParticles] = p;
     bdBox[cI].noOfParticles++;
+    demPart[p].prevCellIndex = cI;
     if(bdBox[cI].noOfParticles > NO_OF_PARTICLES_IN_BDCELL){
         printf("bdBox[cI].noOfParticles > NO_OF_PARTICLES_IN_BDCELL\n");
     }
@@ -211,7 +215,7 @@ void setReduceUnits()
 	freqFactor = sqrt(refLength/gravity);
 	inertiaFactor = 6.0/(PI*pow(refLength,5)*refDensity);
 
-    cutGap = 1.1*largestParDia*conversion*lengthFactor;
+    cutGap = 1.2*largestParDia*conversion*lengthFactor;
 
     dsmaxCff = sfc*(2.0-pois)/(2.0*(1.0-pois));
     //writeLogNum("logfile2.log"," DS MAX",dsmaxCff);
@@ -227,6 +231,7 @@ void setReduceUnits()
 
     elasticMod = ymod/(1.0-pow(pois,2));
 
+    double haa = 0.;
     for (int i=0; i<np; i++){
         demPart[i].pos[0] = demPart[i].pos[0]*lengthFactor;
         demPart[i].pos[1] = demPart[i].pos[1]*lengthFactor;
@@ -234,8 +239,11 @@ void setReduceUnits()
         demPart[i].dt = timeStep;
         demPart[i].dia = demPart[i].dia*lengthFactor;
         demPart[i].mass = (4.0/3.0)*PI*pow((0.5*demPart[i].dia),3.0)*dens*densityFactor;
-        demPart[i].inert = 2.0*demPart[i].mass*pow(0.5*demPart[i].dia,2)/5.0;        
+        demPart[i].inert = 2.0*demPart[i].mass*pow(0.5*demPart[i].dia,2)/5.0; 
+        haa = 6.5E-20lf;
+        demPart[i].ha = haa*forceFactor*lengthFactor;       
     }
+
 
     //Find allowed displacment for neighbourlist update
     rIn = largestParDia*conversion*lengthFactor;
@@ -256,7 +264,7 @@ void setReduceUnits()
 
     cellRadius = 0.5*sqrt(domainDx*domainDx+domainDy*domainDy);
     //writeLogNum("logfile2.log","CEll R ",cellRadius/lengthFactor);
-    //printf("refLength  %lf\n ",refLength);
+    printf("Hmarker Constant  %lf\n ",haa);
 }
 
 /*
