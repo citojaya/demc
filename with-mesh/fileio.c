@@ -44,10 +44,11 @@ void readParticleData(char *infile){
 	printf("No of particles in the simulation %d \n",np);
 }
 
+
 /*---Read input data from a file ----*/
 void readInput(char *infile, int *np, double *dens, double *ymod, 
 			double *pois, double *sfc, double *rec, double *dmpn, double *rf, 
-			double *cyldia, double *dt, int *nW, int *updateDPM, double *haConst){
+			double *cyldia, double *dt, int *updateDPM, double *haConst){
 	// input file reading
 	char filename[20];
 	strcpy(filename, infile);
@@ -75,6 +76,8 @@ void readInput(char *infile, int *np, double *dens, double *ymod,
 
 	double parDia = 0.0;
 	
+	
+
 	findRec(InFile, "PAR_NUMBER");
 	fscanf(InFile, "%d",  np);
 
@@ -96,13 +99,24 @@ void readInput(char *infile, int *np, double *dens, double *ymod,
 	fscanf(InFile, "%lf", dt);	
 
 	findRec(InFile, "WALLS");
-	fscanf(InFile, "%d", nW);	
+	//fscanf(InFile, "%d", nW);	
 
 	findRec(InFile, "DPM");
 	fscanf(InFile, "%d", updateDPM);	
-	//fprintf(LogFile,"xmin,xmax %lf,%lf\n :",xmin,xmax);
-	//fprintf(LogFile,"ymin,ymax %lf,%lf\n :",ymin,ymax);
-	//fprintf(LogFile,"zmin,zmax %lf,%lf\n :",zmin,zmax);
+
+	printf("WORKING\n");
+	findRec(InFile, "WALLMESHBOUNDARY");
+	fscanf(InFile, "%lf", &wallMxmin);
+	fscanf(InFile, "%lf", &wallMxmax);
+	fscanf(InFile, "%lf", &wallMymin);
+	fscanf(InFile, "%lf", &wallMymax);
+	fscanf(InFile, "%lf", &wallMzmin);
+	fscanf(InFile, "%lf", &wallMzmax);
+
+	findRec(InFile, "WALLMESHDIVISIONS");
+	fscanf(InFile, "%d", &wmxDiv);
+	fscanf(InFile, "%d", &wmyDiv);
+	fscanf(InFile, "%d", &wmzDiv);
 
     fclose(InFile);
 	fclose(LogFile);
@@ -202,26 +216,146 @@ void diaInput(char *infile, struct demParticle *par, int *np){
 	fclose(pDiaFile);
 }
 
-void readWalls(char *infile, int *walls){
+/*
+ Read surface edges
+*/
+void readEdges(char *infile){
 	char filename[20];
 	strcpy(filename, infile);
-	strcat(filename ,".in"); 
-	FILE *wFile = fopen(filename, "rt");
+	FILE *edgeFile = fopen(filename, "rt");
 
-	if (wFile == NULL){
-		fprintf(stderr, "Can't open the parameter file %s! \n", filename);
+	if (edgeFile == NULL){
+		fprintf(stderr, "Can't open the edge file %s! \n", filename);
 		char c = getchar();
 		exit(1);
 	}
 
-	findRec(wFile, "WALL_NO");
-	for(int i=0; i<noOfWalls; i++){
-		int wallNo;
-		fscanf(wFile, "%d", &wallNo);
-		walls[i] = wallNo;
-	}
-	fclose(wFile);
+	fscanf(edgeFile, "%d", &noOfVertices);
+	struct line *wEdge = (struct line*)malloc(0.5*noOfVertices*sizeof(struct line));
+	
+	for(int i=0; i<noOfVertices*0.5; i++){
+		fscanf(edgeFile, "%lf", &wEdge[i].node1[0]);
+		fscanf(edgeFile, "%lf", &wEdge[i].node1[1]);
+		fscanf(edgeFile, "%lf", &wEdge[i].node1[2]);
+		fscanf(edgeFile, "%lf", &wEdge[i].node2[0]);
+		fscanf(edgeFile, "%lf", &wEdge[i].node2[1]);
+		fscanf(edgeFile, "%lf", &wEdge[i].node2[2]);
+
+		wEdge[i].node1[0] = wEdge[i].node1[0]*lengthFactor*conversion;
+		wEdge[i].node1[1] = wEdge[i].node1[1]*lengthFactor*conversion;
+		wEdge[i].node1[2] = wEdge[i].node1[2]*lengthFactor*conversion;
+		wEdge[i].node2[0] = wEdge[i].node2[0]*lengthFactor*conversion;
+		wEdge[i].node2[1] = wEdge[i].node2[1]*lengthFactor*conversion;
+		wEdge[i].node2[2] = wEdge[i].node2[2]*lengthFactor*conversion;
+
+		wEdge[i].center[0] = (wEdge[i].node1[0]+wEdge[i].node2[0])/2.;
+		wEdge[i].center[1] = (wEdge[i].node1[1]+wEdge[i].node2[1])/2.;
+		wEdge[i].center[2] = (wEdge[i].node1[2]+wEdge[i].node2[2])/2.;
+	}	
+	fclose(edgeFile);	
+	edge = wEdge;
 }
+
+/* 
+  Read surface data from "WALL_2D_surfaces.dat"
+*/
+void readSurface(char *infile){
+	char filename[20];
+	strcpy(filename, infile);
+	FILE *wallFile = fopen(filename, "rt");
+
+	if (wallFile == NULL){
+		fprintf(stderr, "Can't open the wall surface file %s! \n", filename);
+		char c = getchar();
+		exit(1);
+	}
+	//noOfWallSurfaces;
+	fscanf(wallFile, "%d", &noOfWallSurfaces);
+	struct wallFace *wFace = (struct wallFace*)malloc(noOfWallSurfaces*sizeof(struct wallFace));
+	
+	double centMinX = 1000.;
+	double centMaxX = 0.0;
+	double centMinY = 1000.;
+	double centMaxY = 0.0;
+	double centMinZ = 1000.;
+	double centMaxZ = 0.0;
+
+	for(int i=0; i<noOfWallSurfaces; i++){
+		fscanf(wallFile, "%lf", &wFace[i].node1[0]);
+		fscanf(wallFile, "%lf", &wFace[i].node1[1]);
+		fscanf(wallFile, "%lf", &wFace[i].node1[2]);
+	
+		fscanf(wallFile, "%lf", &wFace[i].node2[0]);
+		fscanf(wallFile, "%lf", &wFace[i].node2[1]);
+		fscanf(wallFile, "%lf", &wFace[i].node2[2]);
+	
+		fscanf(wallFile, "%lf", &wFace[i].node3[0]);
+		fscanf(wallFile, "%lf", &wFace[i].node3[1]);
+		fscanf(wallFile, "%lf", &wFace[i].node3[2]);
+
+		wFace[i].node1[0] = wFace[i].node1[0]*lengthFactor*conversion;
+		wFace[i].node1[1] = wFace[i].node1[1]*lengthFactor*conversion;
+		wFace[i].node1[2] = wFace[i].node1[2]*lengthFactor*conversion;
+	
+		wFace[i].node2[0] = wFace[i].node2[0]*lengthFactor*conversion;
+		wFace[i].node2[1] = wFace[i].node2[1]*lengthFactor*conversion;
+		wFace[i].node2[2] = wFace[i].node2[2]*lengthFactor*conversion;
+
+		wFace[i].node3[0] = wFace[i].node3[0]*lengthFactor*conversion;
+		wFace[i].node3[1] = wFace[i].node3[1]*lengthFactor*conversion;
+		wFace[i].node3[2] = wFace[i].node3[2]*lengthFactor*conversion;
+
+		wFace[i].centroid[0] = (wFace[i].node1[0]+wFace[i].node2[0]+wFace[i].node3[0])/3.0;
+		wFace[i].centroid[1] = (wFace[i].node1[1]+wFace[i].node2[1]+wFace[i].node3[1])/3.0;
+		wFace[i].centroid[2] = (wFace[i].node1[2]+wFace[i].node2[2]+wFace[i].node3[2])/3.0;
+
+		centMinX = fmin(centMinX,wFace[i].centroid[0]);
+		centMaxX = fmax(centMaxX,wFace[i].centroid[0]);
+		centMinY = fmin(centMinY,wFace[i].centroid[1]);
+		centMaxY = fmax(centMaxY,wFace[i].centroid[1]);
+		centMinZ = fmin(centMinZ,wFace[i].centroid[2]);
+		centMaxZ = fmax(centMaxZ,wFace[i].centroid[2]);
+	
+	}
+
+	// printf("centMinX %lf\n", centMinX);
+	// printf("centMaxX %lf\n", centMaxX);
+	// printf("centMinY %lf\n", centMinY);
+	// printf("centMaxY %lf\n", centMaxY);
+	// printf("centMinZ %lf\n", centMinZ);
+	// printf("centMaxZ %lf\n", centMaxZ);
+	// exit(0);
+
+	fclose(wallFile);
+	face = wFace;
+
+	// for(int i=0; i<noOfWallSurfaces; i++){
+	// 	printf("%lf\n",face[i].node1[0]);
+	// }
+
+}
+
+
+// void readWalls(char *infile, int *walls){
+// 	char filename[20];
+// 	strcpy(filename, infile);
+// 	strcat(filename ,".in"); 
+// 	FILE *wFile = fopen(filename, "rt");
+
+// 	if (wFile == NULL){
+// 		fprintf(stderr, "Can't open the parameter file %s! \n", filename);
+// 		char c = getchar();
+// 		exit(1);
+// 	}
+
+// 	findRec(wFile, "WALL_NO");
+// 	for(int i=0; i<noOfWalls; i++){
+// 		int wallNo;
+// 		fscanf(wFile, "%d", &wallNo);
+// 		walls[i] = wallNo;
+// 	}
+// 	fclose(wFile);
+// }
 
 void demSave(){
 	//FILE *outfile; 

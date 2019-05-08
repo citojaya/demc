@@ -170,6 +170,57 @@ double solidFraction(int ip){
     return totVol/((4.0/3.0)*PI*pow(cellRadius,3));
 }
 
+double area(double *vec1, double *vec2){ 
+    double *vec = allocateDoubleArray(DIM); 
+    crossProd(vec1, vec2, vec);
+    double area = 0.5*vecMag(vec);
+    free(vec);
+    return area;
+} 
+
+// /* A function to check whether point P(x, y) lies inside the triangle formed  
+//    by A(x1, y1), B(x2, y2) and C(x3, y3) */ 
+int isInside(double *n1, double *n2, double *n3, double *pt){    
+   /* Calculate area of triangle ABC */
+    double *vec1 = allocateDoubleArray(DIM);
+    double *vec2 = allocateDoubleArray(DIM); 
+    vecSub(n2,n1,vec1);
+    vecSub(n3,n1,vec2);
+    double A = area(vec1, vec2); 
+  
+   /* Calculate area of triangle PBC */
+    vecSub(n1,pt,vec1);
+    vecSub(n2,pt,vec2);      
+    double A1 = area(vec1,vec2); 
+  
+   /* Calculate area of triangle PAC */
+    vecSub(n2,pt,vec1);
+    vecSub(n3,pt,vec2);    
+    double A2 = area(vec1,vec2);
+  
+   /* Calculate area of triangle PAB */    
+    vecSub(n1,pt,vec1);
+    vecSub(n3,pt,vec2);    
+    double A3 = area(vec1,vec2);
+    
+    free(vec1);
+    free(vec2);
+    printf("A %lf\n",A);
+    printf("A1+A2+A3 %lf\n",A1+A2+A3);
+   /* Check if sum of A1, A2 and A3 is same as A */ 
+   if(A == (A1+A2+A3))
+   {
+       return 1;
+   }
+   return 0;
+} 
+
+
+// int pointInTriangle(double *a, double *b, double *c, double *p){
+    
+//     return 0;
+// }
+
 /* Return center distance of two particles
 param:
 p1 - particle 1

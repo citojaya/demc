@@ -90,6 +90,43 @@ void neighbourContactForce(int pI){
     }
 }
 
+void checkFaceContact(int p){
+    int iIndex = ceil((demPart[p].pos[0]-wallMxmin)/wallMdx);
+    int jIndex = ceil((demPart[p].pos[1]-wallMymin)/wallMdy);
+    int kIndex = ceil((demPart[p].pos[2]-wallMzmin)/wallMdz);
+    int cI = iIndex + jIndex*wmxDiv + kIndex*wmxDiv*wmyDiv;
+
+    for(int i=0; i<wallMeshBox[cI].noOfFaces; i++){
+        //double *n1 = allocateDoubleArray(DIM);
+        double *n1 = face[wallMeshBox[cI].wallFaceId[i]].node1;
+        double *n2 = face[wallMeshBox[cI].wallFaceId[i]].node2;
+        double *n3 = face[wallMeshBox[cI].wallFaceId[i]].node3;
+
+        double *uVec = allocateDoubleArray(DIM);
+        getUnitVector(n1,n2,n3,uVec);
+        printf("UNIT VEC %lf, %lf, %lf\n", uVec[0],uVec[1],uVec[2]);
+        exit(0);
+
+        double *vec = allocateDoubleArray(DIM);
+        projVec(demPart[p].pos, uVec, vec, 0);
+
+        // crossProd(n2,n3,vec);
+        // printf("AREA OF TRI %lf\n",0.5*vecMag(vec));
+        if(isInside(n1,n2,n3,vec)){
+            printf("INSIDE\n");
+            printf("UNIT VEC %lf, %lf, %lf\n", uVec[0],uVec[1],uVec[2]);
+            exit(0);
+        }
+        else{
+            printf("OUTSIDE\n");
+        }
+        printf("PROJ VEC %lf, %lf, %lf\n", vec[0],vec[1],vec[2]);
+
+        double gap = getOverlap(demPart[p].pos,1.0, n1,n2,n3, uVec);
+        printf("GAP %lf\n", gap);
+    }
+}
+
 /*Particle-particle vanderwal force*/
 void ppVWForce(int ip, int jp, double vGap){
     
@@ -135,6 +172,43 @@ void pWallVWForce(int p, double vGap, double *uVec){
     demPart[p].force[1] += uVec[1]*fv;
     demPart[p].force[2] += uVec[2]*fv;   
 }
+
+
+// void checkFaceContact(int p, int cI){
+//     for (int i=0; i<bdBox[cI].noOfFaces; i++){
+//         int fId = bdBox[cI].wallFaceId[i];
+//         //if(pointInTriangle(p, fId)){
+//             demPart[p].faceNode1[0] = face[fId].node1[0];
+//             demPart[p].faceNode1[1] = face[fId].node1[1];
+//             demPart[p].faceNode1[2] = face[fId].node1[2];
+
+//             demPart[p].faceNode2[0] = face[fId].node2[0];
+//             demPart[p].faceNode2[1] = face[fId].node2[1];
+//             demPart[p].faceNode2[2] = face[fId].node2[2];
+
+//             demPart[p].faceNode3[0] = face[fId].node3[0];
+//             demPart[p].faceNode3[1] = face[fId].node3[1];
+//             demPart[p].faceNode3[2] = face[fId].node3[2];
+
+//             double *uVec = allocateDoubleArray(DIM);
+//             getUnitVector(demPart[p].faceNode1,demPart[p].faceNode2,
+//                                 demPart[p].faceNode3,uVec);
+
+//             double gap = getOverlap(demPart[p].pos,demPart[p].dia, demPart[p].faceNode1,  
+//                                     demPart[p].faceNode2, demPart[p].faceNode3, uVec);
+   
+//             if(gap < 0) //If contact exists calculate contact force
+//             {
+//                 surfaceContactForce(p, -gap, uVec);
+//             } 
+//             free(uVec);
+//         //}
+        
+//         // else if(pointOnLine()){
+
+//         // }
+//     }
+// }
 
 void checkXContact(int p, double xMin, double xMax){
     //Contact with xMin
@@ -290,7 +364,7 @@ void surfaceContactForce(int p, double nrmDisp, double *uVec){
         }
     }
 
-    sclVecMult(1.0,disp, demPart[p].hisDisp);
+    //sclVecMult(1.0,disp, demPart[p].hisDisp);
 
     //sum of forces
     double nrmForce = (nrmCntForce + nrmDampForce);
@@ -414,8 +488,8 @@ void partContactForce(int ip, int jp, double nrmDisp){
 
 
     //Add forces to jp particle
-    sclVecMult(-1.0, totalForce, totalForce);
-    sclVecMult(-1.0, momentum, momentum);
+    //sclVecMult(-1.0, totalForce, totalForce);
+    //sclVecMult(-1.0, momentum, momentum);
     //vecAdd(demPart[jp].force, totalForce, demPart[jp].force);
     //vecAdd(demPart[jp].momentum, momentum, demPart[jp].momentum);   
 
@@ -451,93 +525,57 @@ void forceCalculation(int p)
 
     //Add Bouynacy
 
-    int nearestFaceIndex = -1;
-    int nearestFaceCellIndex = -1;
-    double minDist = 100000.0;
-    double ipX = demPart[p].pos[0];
-    double ipY = demPart[p].pos[1];
-    double ipZ = demPart[p].pos[2];
+    //int nearestFaceIndex = -1;
+    //int nearestFaceCellIndex = -1;
+    //double minDist = 100000.0;
+    checkFaceContact(p);
 
-    int iIndex = ceil((demPart[p].pos[0]-xmin)/domainDx);
-    int jIndex = ceil((demPart[p].pos[1]-ymin)/domainDy);
-    int kIndex = ceil((demPart[p].pos[2]-zmin)/domainDz);
- /* 
-    for(int rr=kIndex-1; rr<kIndex+2; rr++){
-        for(int qq=jIndex-1; qq<jIndex+2; qq++){
-            for(int pp=iIndex-1; pp<iIndex+2; pp++){
-                int neighCellIndex = pp + qq*xDiv + rr*xDiv*yDiv;
-                for(int i=0; i<bdBox[neighCellIndex].totalFaces; i++){
-                    double jpX = bdBox[neighCellIndex].face[i].centroid[0]*lengthFactor;
-                    double jpY = bdBox[neighCellIndex].face[i].centroid[1]*lengthFactor;
-                    double jpZ = bdBox[neighCellIndex].face[i].centroid[2]*lengthFactor;
+    // double ipX = demPart[p].pos[0];
+    // double ipY = demPart[p].pos[1];
+    // double ipZ = demPart[p].pos[2];
 
-                    double dist = sqrt((ipX-jpX)*(ipX-jpX) + (ipY-jpY)*(ipY-jpY) + (ipZ-jpZ)*(ipZ-jpZ));
-                    if(dist < minDist){
-                        nearestFaceIndex = i;
-                        nearestFaceCellIndex = neighCellIndex;
-                        minDist = dist;
-                    }
-                }
-            }
-        }
-    }   
-
-
-    if(nearestFaceIndex != -1){
-        demPart[p].faceNode1[0] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node1[0]*lengthFactor;
-        demPart[p].faceNode1[1] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node1[1]*lengthFactor;
-        demPart[p].faceNode1[2] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node1[2]*lengthFactor;
-
-        demPart[p].faceNode2[0] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node2[0]*lengthFactor;
-        demPart[p].faceNode2[1] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node2[1]*lengthFactor;
-        demPart[p].faceNode2[2] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node2[2]*lengthFactor;
-
-        demPart[p].faceNode3[0] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node3[0]*lengthFactor;
-        demPart[p].faceNode3[1] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node3[1]*lengthFactor;
-        demPart[p].faceNode3[2] = bdBox[nearestFaceCellIndex].face[nearestFaceIndex].node3[2]*lengthFactor;
-
-        //writeLogNum("logfile2.log", "nearestFaceIndex ", cI);
-            //double gap = demPart[p].pos[1] - demPart[p].dia*0.5;
-        double *uVec = allocateDoubleArray(DIM);
-        //double *tempN1 = allocateDoubleArray(DIM);
-        getUnitVector(demPart[p].faceNode1,demPart[p].faceNode2,
-                            demPart[p].faceNode3,uVec);
+    // int iIndex = ceil((demPart[p].pos[0]-xmin)/domainDx);
+    // int jIndex = ceil((demPart[p].pos[1]-ymin)/domainDy);
+    // int kIndex = ceil((demPart[p].pos[2]-zmin)/domainDz);
  
-        double gap = getOverlap(demPart[p].pos,demPart[p].dia, demPart[p].faceNode1,  
-                                demPart[p].faceNode2, demPart[p].faceNode2, uVec);
-   
-        // writeLogNum("logfile2.log","uVec1 ",uVec[0]);
-        // writeLogNum("logfile2.log","uVec2 ",uVec[1]);
-        // writeLogNum("logfile2.log","uVec3 ",uVec[2]);
-        //writeLogNum("logfile2.log","gap ",gap/lengthFactor);
-        if(gap < 0) //If contact exists calculate contact force
-        {
-            surfaceContactForce(p, -gap, uVec);
-        } 
-        free(uVec);
-    */
+    // int cI = iIndex + xDiv*jIndex + xDiv*yDiv*kIndex;
+    // if(bdBox[cI].isBoundary){
+        
+    // }
+
+/*
+    
     
 //working code
     //check contact with Y face
-    checkYContact(p, -0.005*lengthFactor, 0.005*lengthFactor);
+    double ductxmin = 0.0;
+    double ductxmax = 0.060;
+    double ductxedge1 = 0.03;
+    double ductxedge2 = 0.04;
+    double ductymin = -0.0005;
+    double ductymax = 0.0005;
+    double ductzmin = -0.005;
+    double ductzmax = 0.01;
+    double ductzedge = 0.0; 
+    checkYContact(p, ductymin*lengthFactor, ductymax*lengthFactor);
 
     //check top bound contact
-    if(demPart[p].pos[2] > (0.05*lengthFactor-0.5*demPart[p].dia)){
-        checkZContact(p, 0, 0.05*lengthFactor);
+    if(demPart[p].pos[2] > (ductzmax*lengthFactor-0.5*demPart[p].dia)){
+        checkZContact(p, 0, ductzmax*lengthFactor);
     }
-    else if(demPart[p].pos[0] <= 0.1*lengthFactor || 
-        demPart[p].pos[0] >= 0.15*lengthFactor){
-        checkZContact(p, 0,0.05*lengthFactor);
+    else if(demPart[p].pos[0] <= ductxedge1*lengthFactor || 
+        demPart[p].pos[0] >= ductxedge2*lengthFactor){
+        checkZContact(p, 0,ductzmax*lengthFactor);
     }
     else if(demPart[p].pos[2] <= 0){
-        checkXContact(p, 0.1*lengthFactor, 0.15*lengthFactor);
-        checkZContact(p, -0.05*lengthFactor, 0.05*lengthFactor);
+        checkXContact(p, ductxedge1*lengthFactor, ductxedge2*lengthFactor);
+        checkZContact(p, ductzmin*lengthFactor, ductzmax*lengthFactor);
     }
  
     else{    
         //check for x=100 edge
-        if(demPart[p].pos[0] > 0.1*lengthFactor && 
-            demPart[p].pos[0] < 0.1*lengthFactor+0.5*demPart[p].dia){
+        if(demPart[p].pos[0] > ductxedge1*lengthFactor && 
+            demPart[p].pos[0] < ductxedge1*lengthFactor+0.5*demPart[p].dia){
             if(demPart[p].pos[2] > 0 && demPart[p].pos[2] < 0.5*demPart[p].dia){
                 double *iVec = allocateDoubleArray(DIM);
                 double *jVec = allocateDoubleArray(DIM);
@@ -545,7 +583,7 @@ void forceCalculation(int p)
                 iVec[0] = demPart[p].pos[0];
                 iVec[1] = 0.0;
                 iVec[2] = demPart[p].pos[2];
-                jVec[0] = 0.1*lengthFactor;
+                jVec[0] = ductxedge1*lengthFactor;
                 jVec[1] = 0.0;//demPart[p].pos[1];
                 jVec[2] = 0.0;
             
@@ -566,8 +604,8 @@ void forceCalculation(int p)
         }
      
         //check for x=150 edge
-        else if(demPart[p].pos[0] < 0.15*lengthFactor && 
-            demPart[p].pos[0] > 0.15*lengthFactor-0.5*demPart[p].dia){
+        else if(demPart[p].pos[0] < ductxedge2*lengthFactor && 
+            demPart[p].pos[0] > ductxedge2*lengthFactor-0.5*demPart[p].dia){
             
             if(demPart[p].pos[2] > 0 && demPart[p].pos[2] < 0.5*demPart[p].dia){
                 double *iVec = allocateDoubleArray(DIM);
@@ -576,7 +614,7 @@ void forceCalculation(int p)
                 iVec[0] = demPart[p].pos[0];
                 iVec[1] = 0.0;
                 iVec[2] = demPart[p].pos[2];
-                jVec[0] = 0.15*lengthFactor;
+                jVec[0] = ductxedge2*lengthFactor;
                 jVec[1] = 0.0;//demPart[p].pos[1];
                 jVec[2] = 0.0;
        
@@ -597,7 +635,7 @@ void forceCalculation(int p)
              
         }
     }
-
+*/
     //Find particle-particle contact force and particle-particle Vanderwal force
     neighbourContactForce(p);
 }

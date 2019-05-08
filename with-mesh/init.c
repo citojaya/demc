@@ -11,20 +11,21 @@ void demInit(){
     time_count = 0;// time counter used for saving output file
     particle_counter = 0; //counter for keeping the track of number of particles
     demTime = 0.0;
-
+    
     if(LogFile){
         fclose(LogFile);
     }
     //LogFile = fopen("logfile.log", "a");
-    if(sizeof(walls) != 0){
+    if(sizeof(demPart) != 0){
         //printf("SIZE OF WALLS %d\n",sizeof(walls));
-        free(walls);
+        //free(walls);
 
         free(uVec);
         free(ipRVec);
         free(jpRVec);
 
         free(bdBox);
+        free(wallMeshBox);
             
         free(ijVec);
             //free(tempVec);
@@ -46,20 +47,25 @@ void demInit(){
             free(demPart[i].surfNorm);
         }
         free(demPart);
+        free(face);
 
         // for(int i=0; i<xDiv*yDiv*zDiv; i++){
         //     free(bdBox[i].face);
         // }
-        free(bdBox);
+        //free(bdBox);
     } 
 
+    
 
     //Read material data
     readInput("infile", &parArraySize, &dens, &ymod, &pois, &sfc, &rec, &dmpn, &rf, &cyldia, &timeStep, 
-            &noOfWalls, &updateDPM, &haConst);
+            &updateDPM, &haConst);
+    
     allocate();
+
+
     //Read particle-wall contact surfaces
-    readWalls("infile", walls);
+    //readWalls("infile", walls);
     //printf("TIME STEP %lf\n",timeStep/timeFactor);
 
     writeLogNum("logfile.log","Update DPM ",updateDPM);
@@ -87,7 +93,17 @@ void allocate(){
     //parNb = allocateIntArray(np*nbSize); //neighbourlist of each particle
     //parNoOfNb = allocateIntArray(np); //no of neighbours in each particle
     bdBox = allocateBdBoxArray(xDiv*yDiv*zDiv); //bounding box array
-    
+    wallMeshBox = allocateBdBoxArray(wmxDiv*wmyDiv*wmzDiv);
+
+    for(int i=0; i<wmxDiv*wmyDiv*wmzDiv; i++){
+        //bdBox[i].noOfFaces = 0;
+        //wallMeshBox[i].noOfParticles = 0;
+        //bdBox[i].noOfFluidCells = 0;
+        
+        wallMeshBox[i].noOfFaces = 0;
+        wallMeshBox[i].isBoundary = 0;
+        
+    }   
     for(int i=0; i<xDiv*yDiv*zDiv; i++){
         //bdBox[i].noOfFaces = 0;
         bdBox[i].noOfParticles = 0;
@@ -100,14 +116,8 @@ void allocate(){
         bdBox[i].dragFY = 0.0;
         bdBox[i].dragFZ = 0.0;
         bdBox[i].totalFaces = 0;
-        
-        struct wallFace *f = (struct wallFace*)malloc(NO_OF_FACES*sizeof(struct wallFace));
-                
-        bdBox[i].face = f;
-        // for(int j=0; j<DIM; j++){
-        //     bdBox[i].face[j].node1[0] = 0.0;
-        // }
-        //printf("ALL GOOD\n");
+        bdBox[i].noOfFaces = 0;
+        bdBox[i].isBoundary = 0;
     }
     
     demPart = allocatePar(parArraySize);
@@ -150,9 +160,11 @@ void allocate(){
     xPos = (struct position*)malloc(2*parArraySize*sizeof(struct position));
     yPos = (struct position*)malloc(2*parArraySize*sizeof(struct position));
     zPos = (struct position*)malloc(2*parArraySize*sizeof(struct position));
-    walls = allocateIntArray(noOfWalls);
+    //walls = allocateIntArray(noOfWalls);
     //printf();
     //dpmList = (Tracked_Particle)malloc(2*sizeof(Tracked_Particle));
+
+    
 
 }
 
@@ -250,6 +262,20 @@ void setReduceUnits()
     domainDy = domainDy*lengthFactor;
     domainDz = domainDz*lengthFactor;
 
+    wallMxmin = wallMxmin*lengthFactor;
+    wallMxmax = wallMxmax*lengthFactor;
+    wallMymin = wallMymin*lengthFactor;
+    wallMymax = wallMymax*lengthFactor;
+    wallMzmin = wallMzmin*lengthFactor;
+    wallMzmax = wallMzmax*lengthFactor;
+
+    printf("wall div %d, %d, %d\n", wmxDiv,wmyDiv,wmzDiv);
+    wallMdx = (wallMxmax - wallMxmin)/wmxDiv;
+    wallMdy = (wallMymax - wallMymin)/wmyDiv;
+    wallMdz = (wallMzmax - wallMzmin)/wmzDiv;
+
+    printf("wall %lf, %lf, %lf\n", wallMdx/lengthFactor,wallMdy/lengthFactor,wallMdz/lengthFactor);
+
     cellRadius = 0.5*sqrt(domainDx*domainDx+domainDy*domainDy);
     //writeLogNum("logfile2.log","CEll R ",cellRadius/lengthFactor);
     printf("Hmarker Constant  %lf\n ",haa);
@@ -312,5 +338,36 @@ struct demParticle *allocatePar(int np)
 {
     struct demParticle *par = (struct demParticle*)malloc(np*sizeof(struct demParticle));
     return par;
+}
+
+void deleteAll(){
+  // Delete dynamic memeory
+  free(uVec);
+  free(ipRVec);
+  free(jpRVec);
+
+  free(bdBox);
+    
+  free(ijVec);
+    //free(tempVec);
+  free(rotVel);
+  free(ipCntPntVel);
+  free(jpCntPntVel);
+  free(cntPntVel);
+
+  for(int i=0; i<np; i++){
+    free(demPart[i].pos);
+    free(demPart[i].angVel);
+    free(demPart[i].vel);
+    free(demPart[i].hisDisp);
+    free(demPart[i].force);
+    free(demPart[i].momentum);
+    free(demPart[i].faceNode1);
+    free(demPart[i].faceNode2);
+    free(demPart[i].faceNode3);
+    free(demPart[i].surfNorm);
+  }
+  free(demPart);
+  free(face);
 }
 

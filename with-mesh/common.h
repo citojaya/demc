@@ -20,15 +20,16 @@
 #define overlapLimit 0.005f //ovelap cuttoff value
 
 /*------------ Particle information -------------*/
-#define largestParDia 2.5f //mm
-#define largestParDensity 998.0f //kgm^-3
+#define largestParDia 0.130f //mm
+#define largestParDensity 883.0f //kgm^-3
 #define multif3 2.2 //multification factor used in bounding box divisions
 
 #define DIM 3 // 3D problem
 //#define NO_OF_PARTICLES 100 //Particle array size
 #define NBSIZE 40 //size of neighbourlist
 #define NO_OF_FLUID_CELLS 1 //number of fluid cells in a bounding box
-#define NO_OF_FACES 40 //number of faces contacting with particles
+#define NO_OF_FACES 20 //maximum number of faces in a wall mesh
+#define NO_OF_EDGES 5 //maximum number of edges in a wal mesh 
 #define NO_OF_PARTICLES_IN_BDCELL 30
 //Testing parameters
 #define FVOLF 0.5f //fluid volume fraction
@@ -57,8 +58,9 @@ FILE *LogFile;
 int prevCPUTime;
 int time_count;
 int particle_counter;
-int noOfWalls;
-int *walls;
+int noOfWallSurfaces, noOfVertices;
+//int noOfWalls;
+//int *walls;
 int np, parArraySize; //number of particles, particle array size 
 int cycleCount;
 unsigned int initialized;
@@ -75,9 +77,20 @@ double refLength,refDensity,lengthFactor,volumeFactor,massFactor,timeFactor,
 	densityFactor, forceFactor, pressureFactor, StressFactor, energyFactor, momentFactor,
 	powerFactor, velocityFactor, accFactor, angVelFactor, angAccFactor, freqFactor, inertiaFactor;
 int xDiv, yDiv, zDiv; //Number of divisions in orthogonal domain cells
+
+
+
+// Wall mesh 
+struct BdBox *wallMeshBox;
+int wmxDiv, wmyDiv, wmzDiv;
+double wallMxmin, wallMxmax, wallMymin, wallMymax, wallMzmin, wallMzmax; //wall mesh boundary
+double wallMdx, wallMdy, wallMdz;
+
+//DEM mesh
+struct BdBox *bdBox;
 double domainDx, domainDy, domainDz; //Domain cell size
 double xmax, ymax, zmax; //Max values of domain boundary 
-double xmin, ymin, zmin; //Min values of domain boundary 
+double xmin, ymin, zmin; //Min values of domain boundary
 
 /*
 rIn = largestParDia
@@ -92,7 +105,10 @@ double dens, ymod, pois, sfc, rf, rec, dmpn, elasticMod, haConst; //particle mat
 double dsmaxCff, dti, dd, dsmax, fdt; //used in contact force calculation
 double cyldia; //cylinder diameter
 double timeStep, demTime, maxTime;
-struct BdBox *bdBox;
+
+
+struct wallFace *face;
+struct line *edge;
 struct demParticle *demPart;
 struct position *xPos;
 struct position *yPos;
@@ -112,10 +128,16 @@ struct position{
 
 //Walls face
 struct wallFace{
-	double node1[NO_OF_FACES];
-	double node2[NO_OF_FACES];
-	double node3[NO_OF_FACES];
+	double node1[DIM];
+	double node2[DIM];
+	double node3[DIM];
 	double centroid[DIM];
+};
+
+struct line{
+	double node1[DIM];
+	double node2[DIM];
+	double center[DIM];
 };
 
 //Bounding box which holds CFD cells and DEM particles
@@ -127,8 +149,12 @@ struct BdBox{
 	int totalFaces; //number of contact faces
 	int noOfParticles; //number of DEM particles
 	int parts[NO_OF_PARTICLES_IN_BDCELL];
-	struct wallFace *face;
-	double faceCentroid[NO_OF_FACES*DIM];
+	//struct wallFace *face;
+	int noOfFaces, noOfEdges;
+	int wallFaceId[NO_OF_FACES];
+	int edgeId[NO_OF_EDGES];
+	int isBoundary, isEdgeBoundary;
+	//double faceCentroid[NO_OF_FACES*DIM];
 };
 
 
@@ -175,15 +201,22 @@ struct demParticle *allocatePar(int np);
 //void insertCellToBBox(cell_t c, double x[]);
 double partVol(int p);
 void insertToBdBox(int p, int cI);
+int isInside(double *n1, double *n2, double *n3, double *pt);
+double area(double *vec1, double *vec2);
 //void addToBdBox();
-void addFaceToBdBox();
+void addFacesAndEdges();
+void checkFaceContact(int p);
+int faceExist(int cI, int fId);
+int edgeExist(int cI, int eId);
 void readInput(char *infile, int *np, double *dens, double *ymod, 
 			double *pois, double *sfc, double *rec, double *dmpn, double *rf, double *cyldia, 
-			double *dt, int *nW, int *updateDPM, double *haConst);
+			double *dt, int *updateDPM, double *haConst);
 void findRec(FILE *inFile, char* strDest);
 void diaInput(char *diaFile, struct demParticle *par, int *np);
-void readWalls(char *infile, int *walls);
+//void readWalls(char *infile, int *walls);
 void readParticleData(char *infile);
+void readSurface(char *infile);
+void readEdges(char *infile);
 void writeTec();
 //void demInit(int *xD, int *yD, int *zD, double xmin,double xmax,
 //					double ymin,double ymax,double zmin,double zmax);
@@ -244,5 +277,6 @@ void insertionSort(struct position *xp, int n, int type);
 void printArray(struct position *xp, int n);
 //void printArray(double arr[], int n);
 void run();
+void deleteAll();
 
 #endif 

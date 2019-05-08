@@ -16,31 +16,31 @@ void run(){
     //***** Test code ***********
     //largestParDia = 1.0; //(mm)
     xmin = 0.0; //(m)
-    xmax = 0.250;
-    ymin = -0.005;
-    ymax = 0.005;
-    zmin = -0.050;
-    zmax = 0.050;
+    xmax = 0.06;
+    ymin = -0.0005;
+    ymax = 0.0005;
+    zmin = -0.0050;
+    zmax = 0.010;
 
-    xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
-    yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
-    zDiv = floor((zmax-zmin)/(largestParDia*conversion*multif3));
+    xDiv = ceil((xmax-xmin)/(largestParDia*conversion*multif3));
+    yDiv = ceil((ymax-ymin)/(largestParDia*conversion*multif3));
+    zDiv = ceil((zmax-zmin)/(largestParDia*conversion*multif3));
 
     domainDx = (xmax-xmin)/xDiv;
     domainDy = (ymax-ymin)/yDiv;
     domainDz = (zmax-zmin)/zDiv;
 
-    xmin -= 2.*domainDx;
-    ymin -= 2.*domainDy;
-    zmin -= 2.*domainDz;
+    xmin -= 4.*domainDx;
+    ymin -= 4.*domainDy;
+    zmin -= 4.*domainDz;
 
-    xmax += 2.*domainDx;
-    ymax += 2.*domainDy;
-    zmax += 2.*domainDz;
+    xmax += 4.*domainDx;
+    ymax += 4.*domainDy;
+    zmax += 4.*domainDz;
 
-    xDiv = floor((xmax-xmin)/(largestParDia*conversion*multif3));
-    yDiv = floor((ymax-ymin)/(largestParDia*conversion*multif3));
-    zDiv = floor((zmax-zmin)/(largestParDia*conversion*multif3));
+    xDiv = ceil((xmax-xmin)/(largestParDia*conversion*multif3));
+    yDiv = ceil((ymax-ymin)/(largestParDia*conversion*multif3));
+    zDiv = ceil((zmax-zmin)/(largestParDia*conversion*multif3));
 
     domainDx = (xmax-xmin)/xDiv;
     domainDy = (ymax-ymin)/yDiv;
@@ -49,6 +49,7 @@ void run(){
     //writeLogLine("DOMAIN domainDx, domainDy, domainDz\n");
     printf("Domain dx,dy,dz %lf, %lf, %lf\n",domainDx, domainDy, domainDz);
     printf("xDiv, yDiv, zDiv %d, %d, %d \n",xDiv, yDiv, zDiv);
+    //exit(0);
     //writeLogNum("logfile.log", "domainDx ", domainDx);
     //printf("%d,%d,%d,%lf,%lf,%lf\n",xDiv,yDiv,zDiv,domainDx,domainDy,domainDz,xmin*conversion,ymin*conversion,zmin*conversion);
     demInit();
@@ -65,8 +66,8 @@ void run(){
     // xPos[0] = &val1;
     // xPos[1] = xPos[0];
 
-    // printf("VALUE of 0 position %lf", *xPos[0]);
-
+    
+    //exit(0);
    
     readParticleData("initial.inj");
 
@@ -80,6 +81,9 @@ void run(){
 
     //Setup DEM scaling 
     setReduceUnits(); 
+    readSurface("duct-wall_surface.dat");
+    readEdges("edge.dat");
+    addFacesAndEdges(); //Allocate wall faces to DEM cells
     //printf("PAR POS %lf,%lf, %lf\n", demPart[0].pos[0]/lengthFactor, demPart[0].pos[1]/lengthFactor,demPart[0].pos[2]/lengthFactor);
 
     //Set contact surface
@@ -87,17 +91,25 @@ void run(){
     printf("Timestep %lf\n",timeStep);
     //Assign to bDBox cells
     
+    
     for(int i=0; i<np; i++){
-        int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx); //ceil gives upper value
-        int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy); //but we need lower value
-        int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz); // therefore -1
+        int iIndex = ceil((demPart[i].pos[0]-xmin)/domainDx); 
+        int jIndex = ceil((demPart[i].pos[1]-ymin)/domainDy); 
+        int kIndex = ceil((demPart[i].pos[2]-zmin)/domainDz); 
         int cI = iIndex + jIndex*xDiv + kIndex*xDiv*yDiv;  
         insertToBdBox(i, cI);
     }
-
+    
     for(int i=0; i<np; i++){
         updateNeighbourList(i);
     }
+
+    printf("NO OF VERTICES %d", noOfVertices);
+    for(int i=0; i<noOfVertices*0.5; i++){
+        printf("NODE 1 %lf",edge[i].node1[0]);
+        printf("NODE 2 %lf",edge[i].node2[0]);
+    }
+    //exit(0);
 
     //Set DEM gravitational force
     //assignGravity();
@@ -107,7 +119,7 @@ void run(){
  * **************************************************************************************/
     //particle information
 
-    for(int i=0; i<np; i++){
+    /*for(int i=0; i<np; i++){
         printf("Particle %d array position %d, %d\n", i,demPart[i].startIndex[0],demPart[i].endIndex[0]);
         printf("No of neighs %d", demPart[i].noOfNeigh);
         for(int j=0; j<demPart[i].noOfNeigh; j++){
@@ -115,10 +127,10 @@ void run(){
         }
         printf("\n");
         printf("\n");
-    }
+    }*/
     //printArray(xPos, np*2);
 
-    printf("----------\n");
+    //printf("----------\n");
     // double arr[] = {12.5, 11.1, 13.7, 5.6, 6.6}; 
     // int n = sizeof(arr)/sizeof(arr[0]); 
   
@@ -151,7 +163,7 @@ void run(){
 
     //printArray(xPos, np*2);
 
-    for(int i=0; i<np; i++){
+    /*for(int i=0; i<np; i++){
         printf("Particle %d array position %d, %d\n", i,demPart[i].startIndex[0],demPart[i].endIndex[0]);
     
         printf("No of neighs %d", demPart[i].noOfNeigh);
@@ -159,7 +171,7 @@ void run(){
             printf(" neigh %d ", demPart[i].neigh[j]);
         }
         printf("\n");
-    }
+    }*/
     // //printArray(arr, n); 
 
     // /****** END OF NEW NEIGHBOUR CODE *********************************************/
@@ -170,13 +182,13 @@ void run(){
 
     printf("CUTGAP %lf\n", cutGap/lengthFactor);
     //Update neighbour list
-    for (int i=0; i<np; i++){
-        updateNeighbourList(i);
-    }
+    // for (int i=0; i<np; i++){
+    //     updateNeighbourList(i);
+    // }
     //exit(0);
 
     // int count = 0;
-    for(int i=0; i<600000; i++){
+    for(int i=0; i<10000; i++){
         demLoop();
    
         cycleCount++;
@@ -192,47 +204,90 @@ void run(){
  
     }
 
+
+/******* Surface contact test code ***********/
+
+
+
+
+/********************************************/
     
 
     /******* Project vector testing code ********/
-   /* 
-    double *u = allocateDoubleArray(3);
-    double *p = allocateDoubleArray(3);
+   
+//     double *u = allocateDoubleArray(3);
+//     double *p = allocateDoubleArray(3);
 
-    double *a = allocateDoubleArray(3);
-    double *b = allocateDoubleArray(3);
-    double *c = allocateDoubleArray(3);
-    double *res = allocateDoubleArray(3);
-    double *n1 = allocateDoubleArray(3);
-    double *n2 = allocateDoubleArray(3);
-    double *n3 = allocateDoubleArray(3);
+//     double *a = allocateDoubleArray(3);
+//     double *b = allocateDoubleArray(3);
+//     double *c = allocateDoubleArray(3);
+//     double *res = allocateDoubleArray(3);
+//     double *n1 = allocateDoubleArray(3);
+//     double *n2 = allocateDoubleArray(3);
+//     double *n3 = allocateDoubleArray(3);
 
-    a[0] = 5.0;
-    a[1] = 0.0;
-    a[2] = 0.0;
+//     a[0] = 5.0;
+//     a[1] = 0.0;
+//     a[2] = 0.0;
 
-    b[0] = 0.0;
-    b[1] = 5.0;
-    b[2] = 0.0;
+//     b[0] = 0.0;
+//     b[1] = 5.0;
+//     b[2] = 0.0;
 
-    p[0] = 5.0;
-    p[1] = 5.0;
-    p[2] = 0.4;
+//     p[0] = 1.8;
+//     p[1] = 0.000001;
+//     p[2] = 0.4;
 
-    n1[0] = 0.0;
-    n1[1] = 0.0;
-    n1[2] = 0.0;
+//     n1[0] = 0.0;
+//     n1[1] = 0.0;
+//     n1[2] = 0.0;
 
-    n2[0] = 1.0;
-    n2[1] = 0.0;
-    n2[2] = 0.0;
+//     n2[0] = 2.0;
+//     n2[1] = 0.0;
+//     n2[2] = 0.0;
 
-    n3[0] = 0.0;
-    n3[1] = 2.0;
-    n3[2] = 0.0;
+//     n3[0] = 0.0;
+//     n3[1] = 2.0;
+//     n3[2] = 0.0;
 
+// /*** Contact with surface ********/
+// double *uVec = allocateDoubleArray(DIM);
+// getUnitVector(n1,n2,n3,uVec);
+// printf("UNIT VEC %lf, %lf, %lf\n", uVec[0],uVec[1],uVec[2]);
+
+// double *vec = allocateDoubleArray(DIM);
+// projVec(p, uVec, vec, 0);
+
+// // crossProd(n2,n3,vec);
+// // printf("AREA OF TRI %lf\n",0.5*vecMag(vec));
+// if(isInside(n1,n2,n3,vec)){
+//     printf("INSIDE\n");
+// }
+// else{
+//     printf("OUTSIDE\n");
+// }
+// printf("PROJ VEC %lf, %lf, %lf\n", vec[0],vec[1],vec[2]);
+
+// double gap = getOverlap(p,1.0, n1,n2,n3, uVec);
+// printf("GAP %lf\n", gap);
+
+/*********************************/
+
+/**** Contact with edge ************/
+
+
+
+/***********************************/
+   
+// if(gap < 0) //If contact exists calculate contact force
+// {
+//     //surfaceContactForce(p, -gap, uVec);
+// } 
+
+// free(vec);
+// free(uVec);
     
-
+/*
     crossProd(a,b,u);
     printf("cross prod %lf,%lf,%lf \n",u[0],u[1],u[2]);
     unitVec(u,u);
@@ -266,34 +321,7 @@ void run(){
 /*********************************************************************************/
     
     // Delete dynamic memeory
-
-  // Delete dynamic memeory
-  free(uVec);
-  free(ipRVec);
-  free(jpRVec);
-
-  free(bdBox);
-    
-  free(ijVec);
-    //free(tempVec);
-  free(rotVel);
-  free(ipCntPntVel);
-  free(jpCntPntVel);
-  free(cntPntVel);
-
-  for(int i=0; i<np; i++){
-    free(demPart[i].pos);
-    free(demPart[i].angVel);
-    free(demPart[i].vel);
-    free(demPart[i].hisDisp);
-    free(demPart[i].force);
-    free(demPart[i].momentum);
-    free(demPart[i].faceNode1);
-    free(demPart[i].faceNode2);
-    free(demPart[i].faceNode3);
-    free(demPart[i].surfNorm);
-  }
-  free(demPart);
+    deleteAll();
     
     printf("All good!\n");
     // free(nebListIndex);
