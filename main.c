@@ -81,14 +81,14 @@ void run(){
     }
 
     // int count = 0;
-    for(int i=0; i<100000; i++){
+    for(int i=0; i<1000; i++){
         demLoop();
    
         cycleCount++;
         if(cycleCount > 500){
             clock_t CPU_time_1 = clock();
             printf("%lf ",demTime/timeFactor);
-            printf(" CPU time : %d \n", CPU_time_1-prevCPUTime);
+            printf(" CPU time : %lu \n", CPU_time_1-prevCPUTime);
             prevCPUTime = CPU_time_1;
             demSave();
             cycleCount = 0;

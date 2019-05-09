@@ -240,12 +240,12 @@ void setReduceUnits()
         demPart[i].dia = demPart[i].dia*lengthFactor;
         demPart[i].mass = (4.0/3.0)*PI*pow((0.5*demPart[i].dia),3.0)*dens*densityFactor;
         demPart[i].inert = 2.0*demPart[i].mass*pow(0.5*demPart[i].dia,2)/5.0; 
-        haa = 6.5E-20lf;
+        haa = 6.5E-20;
         demPart[i].ha = haa*forceFactor*lengthFactor;       
     }
 
 
-    //Find allowed displacment for neighbourlist update
+    //Find allowed displacement for neighbourlist update
     rIn = largestParDia*conversion*lengthFactor;
     rOut = 1.55*rIn; //By definition
     allowedDisp = 0.5*(rOut-rIn);

@@ -19,26 +19,11 @@ PAR_NUMBER
 20000
 
 ==============================================================
-# Container Type #
-==============================================================
-ContainerType
-Box
-
-==============================================================
-# (BC)1. Cylinder #
-# NOTE: must increase size for failure test (in real size)
-==============================================================
-CylinderBC
-50
-
-
-==============================================================
 # Cut Gap 4 Reconstruction #
 # NOTE: dimensionless(0.2~0.5)
 ==============================================================
 CUTGAPFORNEIGHBORLIST
 0.3
-
 
 ==============================================================
 # Material Property #
@@ -47,8 +32,53 @@ CUTGAPFORNEIGHBORLIST
 MATERIAL
 1.5E3    1.0E7   2.9E-1  1.0E-1   2.0E-5  1E-3   6.5E-20
 
+==============================================================
+# Electrostatic force
+# PERMITIVITY
+==============================================================
+PERMITIVITY
+8.845E-12
+
+==============================================================
+# Parameters for adhesion between rough surfaces
+# lamda1, lamda2, rms1, rms2
+==============================================================
+ROUGHSURFACE
+1110.0E-9 250.0E-9 0.7E-9 0.7E-9
+
+==============================================================
+# Parameters for capillary force
+# minimum separation, liquid volume
+# surface tension, contact angle
+==============================================================
+CAPILLARY
+5.E-6 9.59E-212 0.013 0
 DPM
 0
+
+==============================================================
+# Domain size of duct problem #
+# ductxmin, ductxmax, ductxedge1, ductxedge2, ductymin, 
+# ductymax, ductzmin, ductzmax, ductzedge
+==============================================================
+GEOMETRY
+0.E-3 142.E-3 100.E-3 105.E-3 -1.0E-3 1.0E-3 -5.E-3 5.E-3 0.0 
+
+==============================================================
+# DEM boundary min and max values in meters
+# xmin, xmax, ymin, ymax, zmin, zmax
+# First findout approximately DEM cell size and set 
+# min and max boundaries so that they offset 2 times of cell size
+==============================================================
+BOUNDARY
+80.0E-3 145.0E-3 -2.2E-3 2.2E-3 -7.E-3 7.E-3
+
+==============================================================
+# Reference values used in reduce units 
+# largestParDia, largestParDensity
+==============================================================
+REFERENCEVALUES
+0.14E-3 0.883E3
 
 ==============================================================
 # SIMULATION PARAMETERS #

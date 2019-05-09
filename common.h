@@ -62,12 +62,6 @@ int *walls;
 int np, parArraySize; //number of particles, particle array size 
 int cycleCount;
 unsigned int initialized;
-//int *sortedParIndex; //sorted array for recording particle index 
-//int *cellSE; //keeps a record of start and end positions for all particle (start=1, end=2)
-//int *parNb; //partilce neighbourlist
-//int *parCIndex; //particle start and end positons of sortedList
-//int *parNoOfNb; //no of neighbours in a particle
-//double *parPosX, *parPosY, *parPosZ, *parDia, *parInert, *parMass, cutGap; //particle parameters
 double cutGap; //Neighbour region
 double largestParDia; //Largest particle diameter
 double cellRadius; //Radius defined by bounding box cell given by 0.5*sqrt(dx^2+dy*2)
@@ -79,11 +73,6 @@ double domainDx, domainDy, domainDz; //Domain cell size
 double xmax, ymax, zmax; //Max values of domain boundary 
 double xmin, ymin, zmin; //Min values of domain boundary 
 
-/*
-rIn = largestParDia
-rOut = 1.55*rIn
-allowedDisp = (rOut-rIn)/2
-*/
 double rIn, rOut, allowedDisp; //if particle displacement > allowedDisp -> update neighbourlist
 
 double *uVec, *ipRVec, *jpRVec, *ijVec, *rotVel;
@@ -122,16 +111,10 @@ struct BdBox{
 	double pGradX, pGradY, pGradZ;
 	double fluidVolF;
 	double dragFX, dragFY, dragFZ;
-
-	//int noOfFluidCells; //number of fluid cells
-	//int noOfFaces; //number of contact faces
 	int noOfParticles; //number of DEM particles
 	int parts[NO_OF_PARTICLES_IN_BDCELL];
-	//face_t surfaces[NO_OF_FACES];
-	//Thread *surfaceThread;
-	//Tracked_Particle *parts[20];
-};
 
+};
 
 //Particle
 struct demParticle{
@@ -143,12 +126,13 @@ struct demParticle{
 	double *faceNode1, *faceNode2, *faceNode3, *surfNorm;
 	int neigh[NBSIZE]; // array for neighbour list
 	int neighCntFDone[NBSIZE]; //keeps a reocrd of neignbour particles which has already force calculation done
-	int noOfCntF;
+	 
+	unsigned short int noOfCntF;
 
 	//int neighCntCalculated[NBSIZE];
-	int noOfNeigh;
-	int prevCellIndex;
-	int insertable;
+	unsigned short int noOfNeigh;
+	unsigned short int prevCellIndex;
+	unsigned short int insertable;
 	double ha; //Hamaker constant
 	//int pCntFcalculated;
 
