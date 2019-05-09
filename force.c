@@ -19,7 +19,7 @@ void forceCalculation(int p)
     neighbourContactForce(p);
 
     //Find drag force on particles from fluid 
-    calculateDragForce(p);
+    //calculateDragForce(p);
 }
 
 /*Particle-particle vanderwal force*/
@@ -29,7 +29,7 @@ void ppVWForce(int ip, int jp, double vGap){
     double jpDia = demPart[jp].dia;
     double vGapMn = 1.0e-9*lengthFactor;
     
-    double ijHa = sqrt(demPart[ip].haPp*demPart[jp].haPp);
+    double ijHa = sqrt(haConst*haConst);
     if(vGap < vGapMn){vGap = vGapMn;}
     
     double rStar = ipDia*jpDia/(ipDia+jpDia);
@@ -54,7 +54,8 @@ void pWallVWForce(int p, double vGap, double *uVec){
     double vGapMn = 1.0e-9*lengthFactor;
     if(vGap < vGapMn){vGap = vGapMn;}
 
-    double fv = -demPart[p].haPp*demPart[p].dia*0.5/(6.*vGap*vGap);
+    double fv = haConst;
+    //demPart[p].dia*0.5/(6.*vGap*vGap);
 
     demPart[p].force[0] += uVec[0]*fv;
     demPart[p].force[1] += uVec[1]*fv;
@@ -62,7 +63,7 @@ void pWallVWForce(int p, double vGap, double *uVec){
 }
 
 /*Particle-particle electrostatic force*/
-void ppElectForce(int ip, int jp, double gap){
+/*void ppElectForce(int ip, int jp, double gap){
     double gap1 = gap/lengthFactor;
     double *uVec = allocateDoubleArray(DIM);
     vecSub(demPart[ip].pos, demPart[jp].pos, uVec);
@@ -75,7 +76,7 @@ void ppElectForce(int ip, int jp, double gap){
     demPart[ip].force[1] += uVec[1]*fe;
     demPart[ip].force[2] += uVec[2]*fe;
     free(uVec);        
-}
+}*/
 
 /*Partcile-particle capillary force*/
 /*void ppCapillaryForce(int ip, int jp, double gap){
@@ -203,6 +204,8 @@ jp - neighbour particle
 nrmDisp - overlap
 */
 void partContactForce(int ip, int jp, double nrmDisp){
+    writeLogNum("logfile4.log", "NRMDISP", 1e3*nrmDisp/lengthFactor);
+    exit(0);
     double rStar = 0.5*demPart[ip].dia*demPart[jp].dia/(demPart[ip].dia+demPart[jp].dia);
     vecSub(demPart[ip].pos, demPart[jp].pos, ijVec);
     unitVec(ijVec,uVec);

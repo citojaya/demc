@@ -7,10 +7,24 @@ void demInit(){
     prevCPUTime = 0;
     cycleCount = 0;
     saveDEM = 0;
-    updateDPM= 0;
+    //updateDPM= 0;
     time_count = 0;// time counter used for saving output file
     particle_counter = 0; //counter for keeping the track of number of particles
     demTime = 0.0;
+
+    readDomain("infile");
+
+    xDiv = ceil((xmax-xmin)/(largestParDia*multif3));
+    yDiv = ceil((ymax-ymin)/(largestParDia*multif3));
+    zDiv = ceil((zmax-zmin)/(largestParDia*multif3));
+
+    domainDx = (xmax-xmin)/xDiv;
+    domainDy = (ymax-ymin)/yDiv;
+    domainDz = (zmax-zmin)/zDiv;
+
+    //writeLogLine("DOMAIN domainDx, domainDy, domainDz\n");
+    printf("Domain dx,dy,dz %lf, %lf, %lf\n",domainDx, domainDy, domainDz);
+    printf("xDiv, yDiv, zDiv %d, %d, %d \n",xDiv, yDiv, zDiv);
 
     if(LogFile){
         fclose(LogFile);
@@ -19,20 +33,15 @@ void demInit(){
     if(sizeof(walls) != 0){
         //printf("SIZE OF WALLS %d\n",sizeof(walls));
         free(walls);
-
         free(uVec);
         free(ipRVec);
         free(jpRVec);
-
         free(bdBox);
-            
         free(ijVec);
-            //free(tempVec);
         free(rotVel);
         free(ipCntPntVel);
         free(jpCntPntVel);
         free(cntPntVel);
-
         for(int i=0; i<np; i++){
             free(demPart[i].pos);
             free(demPart[i].angVel);
@@ -51,20 +60,39 @@ void demInit(){
 
     //Read material data
     readInput("infile", &parArraySize, &dens, &ymod, &pois, &sfc, &rec, &dmpn, &rf, &cyldia, &timeStep, 
-            &noOfWalls, &updateDPM, &haConst);
+            &noOfWalls, &haConst);
+
     allocate();
     //Read particle-wall contact surfaces
-    readWalls("infile", walls);
+    //readWalls("infile", walls);
     //printf("TIME STEP %lf\n",timeStep/timeFactor);
+    readGeom("infile");
 
-    writeLogNum("logfile.log","Update DPM ",updateDPM);
+    //writeLogNum("logfile.log","Update DPM ",updateDPM);
     printf("Particle Array Size %d\n",parArraySize);
-    writeLogNum("logfile.log","Particle Array Size ",parArraySize);
-    writeLogNum("logfile.log","density ",dens);
-    writeLogNum("logfile.log","Youngs Modulus ",ymod);
-    writeLogNum("logfile.log","Timestep ",timeStep);
-    // Read particle information
-    //diaInput("pardia", demPart, &np);  
+    writeLogNum("logfile3.log","Particle Array Size ",parArraySize);
+    writeLog3Num("logfile3.log", "Initial min ",xmin,ymin,zmin);
+    writeLog3Num("logfile3.log", "Initial max ",xmax,ymax,zmax);
+    writeLogNum("logfile3.log","ductxmin ",ductxmin);
+    writeLogNum("logfile3.log","ductxmax ",ductxmax);
+    writeLogNum("logfile3.log","ductxedge1 ",ductxedge1);
+    writeLogNum("logfile3.log","ductxedge2 ",ductxedge2);
+    writeLogNum("logfile3.log","ductymin ",ductymin);
+    writeLogNum("logfile3.log","ductymax ",ductymax);
+    writeLogNum("logfile3.log","ductzmin ",ductzmin);
+    writeLogNum("logfile3.log","ductzmax ",ductzmax);
+    writeLogNum("logfile3.log","ductzedge ",ductzedge);
+    writeLogNum("logfile3.log","maxVel ",maxVel);
+    writeLogNum("logfile3.log","PP haConst ",haConst*1.0e20);
+    writeLogNum("logfile3.log","lamda1 ",lamda1*1e9);
+    writeLogNum("logfile3.log","lamda2 ",lamda2*1e9);
+    writeLogNum("logfile3.log","rms1 ",rms1*1e9);
+    writeLogNum("logfile3.log","rms2 ",rms2*1e9);
+    
+    writeLogNum("logfile3.log","Particle Array Size ",parArraySize);
+    writeLogNum("logfile3.log","density ",dens);
+    writeLogNum("logfile3.log","Youngs Modulus ",ymod);
+    writeLogNum("logfile3.log","Timestep ",timeStep);
 }
 
 /* Allocate arrays */
@@ -73,7 +101,6 @@ void allocate(){
     ipRVec = allocateDoubleArray(DIM);
     jpRVec = allocateDoubleArray(DIM);
     ijVec = allocateDoubleArray(DIM);
-    //tempVec = allocateDoubleArray(dim);
     rotVel = allocateDoubleArray(DIM);
     ipCntPntVel = allocateDoubleArray(DIM);
     jpCntPntVel = allocateDoubleArray(DIM);
@@ -126,12 +153,12 @@ void allocate(){
         demPart[i].surfNorm = allocateDoubleArray(DIM);
         demPart[i].displacement = 0.0;
         demPart[i].insertable = 1;
-        demPart[i].noOfCntF = 0;
+        //demPart[i].noOfCntF = 0;
         
     }
 
 
-    walls = allocateIntArray(noOfWalls);
+    //walls = allocateIntArray(noOfWalls);
     //printf();
     //dpmList = (Tracked_Particle)malloc(2*sizeof(Tracked_Particle));
 
@@ -153,14 +180,14 @@ param:
 pI - particle index
 cI - cell index
 */
-void insertToBdBox(int p, int cI){
+/*void insertToBdBox(int p, int cI){
     bdBox[cI].parts[bdBox[cI].noOfParticles] = p;
     bdBox[cI].noOfParticles++;
     demPart[p].prevCellIndex = cI;
     if(bdBox[cI].noOfParticles > NO_OF_PARTICLES_IN_BDCELL){
         printf("bdBox[cI].noOfParticles > NO_OF_PARTICLES_IN_BDCELL\n");
     }
-}
+}*/
 
 /*
 Delete particle from bdBox
@@ -168,6 +195,7 @@ param:
 pI - particle index
 cI = cell index
 */
+/*
 void deleteParticle(int p, int cI){
     for(int i=0; i<bdBox[cI].noOfParticles; i++){
         int np = bdBox[cI].parts[i];
@@ -177,7 +205,7 @@ void deleteParticle(int p, int cI){
             break;
         }
     }
-}
+}*/
 
 
 /*
@@ -218,7 +246,7 @@ void setReduceUnits()
     cutGap = 1.2*largestParDia*conversion*lengthFactor;
 
     dsmaxCff = sfc*(2.0-pois)/(2.0*(1.0-pois));
-    //writeLogNum("logfile2.log"," DS MAX",dsmaxCff);
+    //writeLogNum("logfile3.log"," DS MAX",dsmaxCff);
     dti = 0.0;
     dd = 0.0;
     dsmax = 0.0;
@@ -239,9 +267,10 @@ void setReduceUnits()
         demPart[i].dt = timeStep;
         demPart[i].dia = demPart[i].dia*lengthFactor;
         demPart[i].mass = (4.0/3.0)*PI*pow((0.5*demPart[i].dia),3.0)*dens*densityFactor;
-        demPart[i].inert = 2.0*demPart[i].mass*pow(0.5*demPart[i].dia,2)/5.0; 
+        demPart[i].inert = 2.0*demPart[i].mass*pow(0.5*demPart[i].dia,2)/5.0;
+        demPart[i].displacement = 2.0*allowedDisp;
         haa = 6.5E-20;
-        demPart[i].ha = haa*forceFactor*lengthFactor;       
+        //demPart[i].ha = haa*forceFactor*lengthFactor;       
     }
 
 
@@ -263,7 +292,7 @@ void setReduceUnits()
     domainDz = domainDz*lengthFactor;
 
     cellRadius = 0.5*sqrt(domainDx*domainDx+domainDy*domainDy);
-    //writeLogNum("logfile2.log","CEll R ",cellRadius/lengthFactor);
+    //writeLogNum("logfile3.log","CEll R ",cellRadius/lengthFactor);
     printf("Hmarker Constant  %lf\n ",haa);
 }
 

@@ -21,7 +21,7 @@
 
 /*------------ Particle information -------------*/
 //#define largestParDia 0.1f //mm
-#define largestParDensity 1500.0f //kgm^-3
+
 #define multif3 2.8 //multification factor used in bounding box divisions
 
 #define DIM 3 // 3D problem
@@ -62,13 +62,18 @@ int *walls;
 int np, parArraySize; //number of particles, particle array size 
 int cycleCount;
 unsigned int initialized;
+double ductxmin, ductxmax, ductxedge1, ductxedge2, ductymin, ductymax, ductzmin, ductzmax, ductzedge;
 double cutGap; //Neighbour region
 double largestParDia; //Largest particle diameter
 double cellRadius; //Radius defined by bounding box cell given by 0.5*sqrt(dx^2+dy*2)
 double refLength,refDensity,lengthFactor,volumeFactor,massFactor,timeFactor,
 	densityFactor, forceFactor, pressureFactor, StressFactor, energyFactor, momentFactor,
-	powerFactor, velocityFactor, accFactor, angVelFactor, angAccFactor, freqFactor, inertiaFactor;
-int xDiv, yDiv, zDiv; //Number of divisions in orthogonal domain cells
+	powerFactor, velocityFactor, accFactor, angVelFactor, angAccFactor, freqFactor, inertiaFactor, largestParDia, largestParDensity;
+double vGapMn; //minimum gap for vanderwal force 
+double maxVel; //maximum flow velocity at the inlet 
+double permitivity, lamda1, lamda2, rms1, rms2;
+double s_min,liq_vol, surf_tens, cont_ang; 
+unsigned int xDiv, yDiv, zDiv; //Number of divisions in orthogonal domain cells
 double domainDx, domainDy, domainDz; //Domain cell size
 double xmax, ymax, zmax; //Max values of domain boundary 
 double xmin, ymin, zmin; //Min values of domain boundary 
@@ -84,26 +89,9 @@ double timeStep, demTime, maxTime;
 struct BdBox *bdBox;
 struct demParticle *demPart;
 //Tracked_Particle *dpmList[2];
-int updateDPM;
+//int updateDPM;
 int saveDEM; //counter used for saving DEM particle for TECPLOT
 
-//*--- Boundary Condition ---*// 
-struct CylinderBC { 
-	double cir;     // the position of axial and radius (X, Y)
-	double R;        // radius
-	double Tw;       // top position
-	double Bw;       // bottom position
-	double topv, btmv;            
-};
-
-// material properties
-struct MatType {
-	double density;
-	double emod, ymod, pois;
-	double dmpn;
-	double sfrc, rfrc;
-	double yldp;        
-};
 
 //Bounding box which holds CFD cells and DEM particles
 struct BdBox{
@@ -125,15 +113,19 @@ struct demParticle{
 	double *pos, *angVel, *vel, *hisDisp, *force, *momentum;
 	double *faceNode1, *faceNode2, *faceNode3, *surfNorm;
 	int neigh[NBSIZE]; // array for neighbour list
-	int neighCntFDone[NBSIZE]; //keeps a reocrd of neignbour particles which has already force calculation done
+	int cordNo;
+	//int prevCellIndex;
+	//short int insertable;
+	//int neighCntFDone[NBSIZE]; //keeps a reocrd of neignbour particles which has already force calculation done
 	 
-	unsigned short int noOfCntF;
+	//unsigned short int noOfCntF;
 
 	//int neighCntCalculated[NBSIZE];
 	unsigned short int noOfNeigh;
 	unsigned short int prevCellIndex;
 	unsigned short int insertable;
-	double ha; //Hamaker constant
+	double eCharge;
+	//double ha; //Hamaker constant
 	//int pCntFcalculated;
 
 };
@@ -147,8 +139,9 @@ struct demParticle{
 //static int np; //Total number of particles in the system
 double solidFraction(int ip);
 void writeLogNum(char *infile, char *line, double num);
+void writeLog3Num(char *infile, char *line, double v1, double v2, double v3);
 //void test(Tracked_Particle *p, Thread *t);
-void allocateMat(struct MatType *mt);
+//void allocateMat(struct MatType *mt);
 int *allocateIntArray(int size);
 double *allocateDoubleArray(int size);
 
@@ -156,16 +149,18 @@ struct BdBox *allocateBdBoxArray(int size);
 struct demParticle *allocatePar(int np);
 //void insertCellToBBox(cell_t c, double x[]);
 double partVol(int p);
-void insertToBdBox(int p, int cI);
+
 void addToBdBox();
 void addFaceToBdBox();
 void readInput(char *infile, int *np, double *dens, double *ymod, 
 			double *pois, double *sfc, double *rec, double *dmpn, double *rf, double *cyldia, 
-			double *dt, int *nW, int *updateDPM, double *haConst);
+			double *dt, int *nW, double *haConst);
 void findRec(FILE *inFile, char* strDest);
 void diaInput(char *diaFile, struct demParticle *par, int *np);
 void readWalls(char *infile, int *walls);
 void readParticleData(char *infile);
+void readGeom(char *infile);
+void readDomain(char *infile);
 void writeTec();
 //void demInit(int *xD, int *yD, int *zD, double xmin,double xmax,
 //					double ymin,double ymax,double zmin,double zmax);
@@ -179,6 +174,7 @@ void allocate();
 //void updateForce(Tracked_Particle *p);
 void updateForce(int p);
 void partContactForce(int ip, int jp, double nrmDsp);
+void findContactFromBoundary(int p);
 void boundaryContactForce(int pI, double *n1, double *n2, double *n3, double *uVec);
 void ppVWForce(int ip, int jp, double vGap);
 void pWallVWForce(int p, double vGap, double *uVec);
@@ -216,6 +212,9 @@ void insertToBdBox(int p, int cI);
 void deleteParticle(int p, int cI);
 void forceCalculation(int p);
 void updatePosition(int p);
+void checkXContact(int p, double xMin, double xMax);
+void checkYContact(int p, double yMin, double yMax);
+void checkZContact(int p, double zMin, double zMax);
 void run();
 
 #endif 

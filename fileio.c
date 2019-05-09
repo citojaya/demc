@@ -17,8 +17,6 @@ void findRec(FILE *inFile, char* strDest){
 	}
 
 	if(strcmp(strDest, strSrc) != 0){
-		//free(strSrc);
-		//printf("Unable to find relevant info of: %s \n", strDest);
 		exit(1);
 	}
 	free(strSrc);
@@ -47,7 +45,7 @@ void readParticleData(char *infile){
 /*---Read input data from a file ----*/
 void readInput(char *infile, int *np, double *dens, double *ymod, 
 			double *pois, double *sfc, double *rec, double *dmpn, double *rf, 
-			double *cyldia, double *dt, int *nW, int *updateDPM, double *haConst){
+			double *cyldia, double *dt, int *nW, double *haConst){
 	// input file reading
 	char filename[20];
 	strcpy(filename, infile);
@@ -87,31 +85,85 @@ void readInput(char *infile, int *np, double *dens, double *ymod,
 	fscanf(InFile, "%lf", rf);
 	fscanf(InFile, "%lf", haConst);
 
-	findRec(InFile, "CylinderBC");
-	fscanf(InFile, "%lf", cyldia);
-	fprintf(LogFile,"Domain size\n");
-	fprintf(LogFile,"xDiv,yDiv,zDiv: %d,%d,%d\n :",xDiv,yDiv,zDiv);
-
 	findRec(InFile, "SIMULATION");
 	fscanf(InFile, "%lf", dt);	
 
 	findRec(InFile, "WALLS");
 	fscanf(InFile, "%d", nW);	
 
-	findRec(InFile, "DPM");
-	fscanf(InFile, "%d", updateDPM);	
-	//fprintf(LogFile,"xmin,xmax %lf,%lf\n :",xmin,xmax);
-	//fprintf(LogFile,"ymin,ymax %lf,%lf\n :",ymin,ymax);
-	//fprintf(LogFile,"zmin,zmax %lf,%lf\n :",zmin,zmax);
+	findRec(InFile, "PERMITIVITY");
+	fscanf(InFile, "%lf", &permitivity);
+
+	findRec(InFile, "ROUGHSURFACE");
+	fscanf(InFile, "%lf", &lamda1);
+	fscanf(InFile, "%lf", &lamda2);
+	fscanf(InFile, "%lf", &rms1);
+	fscanf(InFile, "%lf", &rms2);
+
+	findRec(InFile, "CAPILLARY");
+	fscanf(InFile, "%lf", &s_min);
+	fscanf(InFile, "%lf", &liq_vol);
+	fscanf(InFile, "%lf", &surf_tens);
+	fscanf(InFile, "%lf", &cont_ang);
 
     fclose(InFile);
 	fclose(LogFile);
 }
 
+void readGeom(char *infile){
+	char filename[20];
+	//real inletVel;
+	strcpy(filename, infile);
+	strcat(filename ,".in"); 
+	FILE *f = fopen(filename, "rt");
+	findRec(f, "GEOMETRY");
+	
+	fscanf(f, "%lf", &ductxmin);
+	fscanf(f, "%lf", &ductxmax);
+	fscanf(f, "%lf", &ductxedge1);
+	fscanf(f, "%lf", &ductxedge2);
+	fscanf(f, "%lf", &ductymin);
+	fscanf(f, "%lf", &ductymax);
+	fscanf(f, "%lf", &ductzmin);
+	fscanf(f, "%lf", &ductzmax);
+	fscanf(f, "%lf", &ductzedge);
+
+	fclose(f);	
+}
+
+void readDomain(char *infile){
+	char filename[20];
+	//real inletVel;
+	strcpy(filename, infile);
+	strcat(filename ,".in"); 
+	FILE *f = fopen(filename, "rt");
+	findRec(f, "BOUNDARY");
+	
+	fscanf(f, "%lf", &xmin);
+	fscanf(f, "%lf", &xmax);
+	fscanf(f, "%lf", &ymin);
+	fscanf(f, "%lf", &ymax);
+	fscanf(f, "%lf", &zmin);
+	fscanf(f, "%lf", &zmax);
+
+	findRec(f, "REFERENCEVALUES");
+	fscanf(f, "%lf", &largestParDia);
+	fscanf(f, "%lf", &largestParDensity);
+
+	fclose(f);	
+}
+
 void writeLogNum(char *infile, char *line, double num){
 	FILE *LogFile = fopen(infile, "a");
-	//fprintf(LogFile,line);
+	fprintf(LogFile,line);
 	fprintf(LogFile,"%lf\n",num);
+	fclose(LogFile);
+}
+
+void writeLog3Num(char *infile, char *line, double v1, double v2, double v3){
+	FILE *LogFile = fopen(infile, "a");
+	fprintf(LogFile,line);
+	fprintf(LogFile,"%lf %lf %lf\n",v1,v2,v3);
 	fclose(LogFile);
 }
 
@@ -228,7 +280,7 @@ void demSave(){
 	char filename[20];
 	sprintf(filename, "particle.dat");
 	FILE *outfile = fopen(filename, "a");
-	fprintf(outfile, "TIME = %lf\n",demTime);
+	fprintf(outfile, "TIME = %lf\n",demTime/timeFactor);
 
   	// Injection *I;
   	// Injection *Ilist = Get_dpm_injections();
@@ -256,31 +308,4 @@ void demSave(){
 	fclose(outfile);
 	
 }
-
-// void writeTec(double *pPosX, double *parPosY, double *parPosZ){
-// 	FILE *outfile; 
-// 	char filename[20];
-// 	sprintf(filename, "particle_info.dat");
-
-// 	if (h_dem->Outs == 0)
-// 	{
-// 		outfile = fopen(filename, "wt");
-
-// 		fprintf(outfile, "TITLE = \" PARTICLE INFORMATION \" \n");
-// 		fprintf(outfile, "VARIABLES = X   Y   Z   R   VX   VY   VZ   W   F\n");
-// 		fclose(outfile);
-// 	}
-
-// 	outfile = fopen(filename, "a");
-// 	fprintf(outfile, "ZONE T= \" %12.6lf s \" \n", h_dem->ctime * Rdu->rtunit);
-// 	for (int ip = 0; ip<TotalParticle; ip++)
-// 	{
-// 		fprintf(outfile, "%11.5lf   %11.5lf   %11.5lf   %11.5f  %11.5lf   %11.5lf   %11.5lf   %11.5lf   %11.5lf\n", 
-// 		                  hPos[ip].x,   hPos[ip].y,   hPos[ip].z,  hRad[ip],
-// 		                  hVel[ip].x,   hVel[ip].y,   hVel[ip].z, 
-// 		                  length(hAngVel[ip]), length(hForce[ip]));
-// 	}
-
-// 	fclose(outfile);
-// }
 

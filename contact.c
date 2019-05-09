@@ -33,6 +33,7 @@ double getOverlap(double *parPos, double dia, double *n1, double *n2, double *n3
 void neighbourContactForce(int pI){
     //Loop through all neighbour particles
     int count = 0;
+    
     for(int i=0; i<demPart[pI].noOfNeigh; i++){
         //printf("Neighbours\n");
         int jp = demPart[pI].neigh[i];
@@ -48,12 +49,12 @@ void neighbourContactForce(int pI){
             }
             if(gap < 100.e-9*lengthFactor)//activate vanderwaal force when gap<100nm
             {
-                ppVWForce(pI, jp, gap);
+                //ppVWForce(pI, jp, gap);
                 //ppVWForce(jp, pI, gap);
             }
         //}
     }
-    demPart[pI].cordNo = count;
+    //demPart[pI].cordNo = count;
 }
 
 
