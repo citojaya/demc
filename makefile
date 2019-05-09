@@ -5,8 +5,8 @@ gcc  = g++
 g++   = gcc
 WINDRES = windres.exe
 RES  = 
-OBJ  =  main.o init.o fileio.o mathop.o motion.o neighbour.o$(RES)
-LINKOBJ  = main.o init.o fileio.o mathop.o motion.o neighbour.o$(RES)
+OBJ  =  main.o init.o fileio.o mathop.o motion.o force.o contact.o neighbour.o$(RES)
+LINKOBJ  = main.o init.o fileio.o mathop.o motion.o force.o contact.o neighbour.o$(RES)
 LIBS =  -lm  
 INCS =  -I"include" 
 CXXINCS =  -I"include" 
@@ -36,6 +36,10 @@ fileio.o: fileio.c
 	$(g++) -c fileio.c -o fileio.o $(CXXFLAGS)
 mathop.o: mathop.c
 	$(g++) -c mathop.c -o mathop.o $(CXXFLAGS)
+contact.o: contact.c
+	$(g++) -c contact.c -o contact.o $(CXXFLAGS)
+force.o: force.c
+	$(g++) -c force.c -o force.o $(CXXFLAGS)
 motion.o: motion.c
 	$(g++) -c motion.c -o motion.o $(CXXFLAGS)
 neighbour.o: neighbour.c
